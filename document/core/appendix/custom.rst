@@ -8,7 +8,6 @@ Such sections or annotations do not contribute to, or otherwise affect, the WebA
 However, they provide useful meta data that implementations can make use of to improve user experience or take compilation hints.
 
 
-
 .. index:: ! name section, name, Unicode UTF-8
 .. _binary-namesec:
 
@@ -332,3 +331,46 @@ Their relative placement will depend on the placement directive given for the :m
       custom section "G"
       custom section "A"
       custom section "D"
+
+.. index:: ! branch hints section, hint
+.. _binary-branchHintsSec:
+.. _binary-funchints:
+
+Branch Hints Section
+~~~~~~~~~~~~~~~~~~~~
+
+The *branch hints section* is a :ref:`custom section <binary-customsec>` whose name string is :math:`\text{branchHints}`.
+The branch hints section should appear only once in a module, and only before the :ref:`code section <binary-codesec>`.
+
+The purpose of this section is to aid the compilation of conditional branch instructions, by providing a hint that a branch is very likely (or unlikely) to be taken.
+
+The section contains a vector of *function branch hints* each representing the branch hints for a single function.
+
+Each *function function hints* structure consists of
+
+* the :ref:`function index <binary-funcidx>` of the function the hints are referring to,
+* a vector of *branch hints* for the function.
+
+Each *branch hint* structure consists of
+
+* the |U32| byte offset of the hinted instruction from the first instruction of the function,
+* a byte indicating the meaning of the hint:
+
+=====  ===========================================
+Value  Meaning                                    
+=====  ===========================================
+ 0x00  branch likely not taken
+ 0x01  branch likely taken
+=====  ===========================================
+
+.. math::
+   \begin{array}{llclll}
+   \production{function branch hints} & \Bfuncbranchhints &::=&
+     \Bfuncidx~\Bvec(\Bbranchhint) \\
+   \production{branch hint} & \Bbranchhint &::=&
+     \X{instoff}{:}\Bu32~~\Bbranchhintkind \\
+   \production{branch hint kind} & \Bbranchhintkind &::=&
+     \hex{00} \\ &&&
+     \hex{01} \\
+   \end{array}
+
