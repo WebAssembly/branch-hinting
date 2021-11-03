@@ -333,13 +333,14 @@ Their relative placement will depend on the placement directive given for the :m
       custom section "D"
 
 .. index:: ! branch hints section, hint
-.. _binary-branchHintsSec:
+.. _binary-branchHintSec:
 .. _binary-funchints:
 
-Branch Hints Section
+
+Branch Hint Section
 ~~~~~~~~~~~~~~~~~~~~
 
-The *branch hints section* is a :ref:`custom section <binary-customsec>` whose name string is :math:`\text{branchHints}`.
+The *branch hint section* is a :ref:`custom section <binary-customsec>` whose name string is :math:`\text{branchHints}`.
 The branch hints section should appear only once in a module, and only before the :ref:`code section <binary-codesec>`.
 
 The purpose of this section is to aid the compilation of conditional branch instructions, by providing a hint that a branch is very likely (or unlikely) to be taken.
@@ -385,4 +386,12 @@ in the code section at the specified offset.
      \hex{00} \\ &&&
      \hex{01} \\
    \end{array}
+
+Branch Hint Annotations
+~~~~~~~~~~~~~~~~
+
+*Branch hint annotations* are the textual analogue to the :ref:`branch hint section <_binary-branchHintSec>` and provide a textual representation for it.
+Consequently, their id is :math:`\T{@code_annotation.branch_hint}`.
+
+Branch hint annotations are allowed on :ref:`instructions <text-instruction>`.
 
