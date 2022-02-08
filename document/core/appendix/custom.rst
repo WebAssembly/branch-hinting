@@ -395,3 +395,20 @@ in the code section at the specified offset.
      \hex{01} \\
    \end{array}
 
+Branch Hint Annotations
+~~~~~~~~~~~~~~~~
+
+*Branch Hint annotations* are the textual analogue to the :ref:`branch hint section <binary-branchhintsec>` and provide a textual representation for it.
+Consequently, their id is :math:`\T{@metadata.code.branch_hint}`.
+
+Branch hint annotations are allowed only on :ref:`instructions <text-instruction>`.
+
+At most one name annotation may be given per instruction, and only the |BRIF| and |IF| instructions are allowed.
+
+Branch hint annotations have the following format:
+
+.. math::
+   \begin{array}{llclll}
+   \production{branch hint annotation} & \Tbranchhintannot &::=&
+     \text{(@metadata.code.branch_hint}~\Tstring~\text{)} \\
+   \end{array}
