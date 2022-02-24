@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Custom Sections and Annotations &#8212; WebAssembly 1.1 + branch hinting (Draft 2022-02-23)</title>
+    <title>Custom Sections and Annotations &#8212; WebAssembly 1.1 + branch hinting (Draft 2022-02-24)</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
@@ -279,7 +279,7 @@ and a function index can appear at most once.</p>
 <p>Each <em>branch hint</em> structure consists of</p>
 <ul class="simple">
 <li><p>the <span class="math notranslate nohighlight">\(\href{../syntax/values.html#syntax-int}{\mathit{u32}}\)</span> byte offset of the hinted instruction from the beginning of the function body,</p></li>
-<li><p>A byte with value 0x01,</p></li>
+<li><p>A <span class="math notranslate nohighlight">\(\href{../syntax/values.html#syntax-int}{\mathit{u32}}\)</span> with value ‘1’,</p></li>
 <li><p>a <span class="math notranslate nohighlight">\(\href{../syntax/values.html#syntax-int}{\mathit{u32}}\)</span> indicating the meaning of the hint:</p></li>
 </ul>
 <table class="docutils align-default">
@@ -314,10 +314,10 @@ in the code section at the specified offset.</p>
 \def\mathdef79#1{{}}\mathdef79{function branch hints} &amp; \href{../appendix/custom.html#binary-branchhintssec}{\mathtt{funcbranchhints}} &amp;::=&amp;
   fidx{:}\href{../binary/modules.html#binary-funcidx}{\mathtt{funcidx}}~\href{../binary/conventions.html#binary-vec}{\mathtt{vec}}(\href{../appendix/custom.html#binary-branchhintsec}{\mathtt{branchhint}}) \\
 \def\mathdef79#1{{}}\mathdef79{branch hint} &amp; \href{../appendix/custom.html#binary-branchhintsec}{\mathtt{branchhint}} &amp;::=&amp;
-  \mathit{instoff}{:}\href{../binary/values.html#binary-int}{\def\mathdef84#1{{\mathtt{u}#1}}\mathdef84{\mathtt{32}}} ~~ \def\mathdef128#1{\mathtt{0x#1}}\mathdef128{01} ~~ \href{../appendix/custom.html#binary-branchhintsec}{\mathtt{branchhintkind}} \\
+  \mathit{instoff}{:}\href{../binary/values.html#binary-int}{\def\mathdef84#1{{\mathtt{u}#1}}\mathdef84{\mathtt{32}}} ~~ 1{:}\href{../binary/values.html#binary-int}{\def\mathdef84#1{{\mathtt{u}#1}}\mathdef84{\mathtt{32}}} ~~ \href{../appendix/custom.html#binary-branchhintsec}{\mathtt{branchhintkind}} \\
 \def\mathdef79#1{{}}\mathdef79{branch hint kind} &amp; \href{../appendix/custom.html#binary-branchhintsec}{\mathtt{branchhintkind}} &amp;::=&amp;
-  \def\mathdef129#1{\mathtt{0x#1}}\mathdef129{00} \\ &amp;&amp;|&amp;
-  \def\mathdef130#1{\mathtt{0x#1}}\mathdef130{01} \\
+  \def\mathdef128#1{\mathtt{0x#1}}\mathdef128{00} \\ &amp;&amp;|&amp;
+  \def\mathdef129#1{\mathtt{0x#1}}\mathdef129{01} \\
 \end{array}\end{split}\]</div>
 </section>
 <section id="custom-annotations">
@@ -326,30 +326,30 @@ in the code section at the specified offset.</p>
 Their id is <span class="math notranslate nohighlight">\(\mathtt{&#64;custom}\)</span>.
 By generating custom annotations, tools converting between <a class="reference internal" href="../binary/index.html#binary"><span class="std std-ref">binary format</span></a> and <a class="reference internal" href="../text/index.html#text"><span class="std std-ref">text format</span></a> can maintain and round-trip the content of custom sections even when they do not recognize them.</p>
 <p>Custom annotations must be placed inside a <a class="reference internal" href="../text/modules.html#text-module"><span class="std std-ref">module</span></a> definition.
-They must occur anywhere after the <span class="math notranslate nohighlight">\(\def\mathdef131#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef131{module}\)</span> keyword, or if present, after the following module <a class="reference internal" href="../text/values.html#text-id"><span class="std std-ref">identifier</span></a>.
+They must occur anywhere after the <span class="math notranslate nohighlight">\(\def\mathdef130#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef130{module}\)</span> keyword, or if present, after the following module <a class="reference internal" href="../text/values.html#text-id"><span class="std std-ref">identifier</span></a>.
 They must not be nested into other constructs.</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{array}{llclll}
 \def\mathdef79#1{{}}\mathdef79{custom annotation} &amp; \href{../appendix/custom.html#text-customannot}{\mathtt{customannot}} &amp;::=&amp;
-  \def\mathdef132#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef132{(&#64;custom}~~\href{../text/values.html#text-string}{\mathtt{string}}~~\href{../appendix/custom.html#text-customannot}{\mathtt{customplace}}^?~~\href{../text/modules.html#text-datastring}{\mathtt{datastring}}~~\def\mathdef133#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef133{)} \\
+  \def\mathdef131#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef131{(&#64;custom}~~\href{../text/values.html#text-string}{\mathtt{string}}~~\href{../appendix/custom.html#text-customannot}{\mathtt{customplace}}^?~~\href{../text/modules.html#text-datastring}{\mathtt{datastring}}~~\def\mathdef132#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef132{)} \\
 \def\mathdef79#1{{}}\mathdef79{custom placement} &amp; \href{../appendix/custom.html#text-customannot}{\mathtt{customplace}} &amp;::=&amp;
-  \def\mathdef134#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef134{(}~\def\mathdef135#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef135{before}~~\def\mathdef136#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef136{first}~\def\mathdef137#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef137{)} \\ &amp;&amp;|&amp;
-  \def\mathdef138#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef138{(}~\def\mathdef139#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef139{before}~~\href{../appendix/custom.html#text-customannot}{\mathtt{sec}}~\def\mathdef140#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef140{)} \\ &amp;&amp;|&amp;
-  \def\mathdef141#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef141{(}~\def\mathdef142#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef142{after}~~\href{../appendix/custom.html#text-customannot}{\mathtt{sec}}~\def\mathdef143#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef143{)} \\ &amp;&amp;|&amp;
-  \def\mathdef144#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef144{(}~\def\mathdef145#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef145{after}~~\def\mathdef146#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef146{last}~\def\mathdef147#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef147{)} \\
+  \def\mathdef133#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef133{(}~\def\mathdef134#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef134{before}~~\def\mathdef135#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef135{first}~\def\mathdef136#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef136{)} \\ &amp;&amp;|&amp;
+  \def\mathdef137#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef137{(}~\def\mathdef138#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef138{before}~~\href{../appendix/custom.html#text-customannot}{\mathtt{sec}}~\def\mathdef139#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef139{)} \\ &amp;&amp;|&amp;
+  \def\mathdef140#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef140{(}~\def\mathdef141#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef141{after}~~\href{../appendix/custom.html#text-customannot}{\mathtt{sec}}~\def\mathdef142#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef142{)} \\ &amp;&amp;|&amp;
+  \def\mathdef143#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef143{(}~\def\mathdef144#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef144{after}~~\def\mathdef145#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef145{last}~\def\mathdef146#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef146{)} \\
 \def\mathdef79#1{{}}\mathdef79{section} &amp; \href{../appendix/custom.html#text-customannot}{\mathtt{sec}} &amp;::=&amp;
-  \def\mathdef148#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef148{type} \\ &amp;&amp;|&amp;
-  \def\mathdef149#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef149{import} \\ &amp;&amp;|&amp;
-  \def\mathdef150#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef150{func} \\ &amp;&amp;|&amp;
-  \def\mathdef151#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef151{table} \\ &amp;&amp;|&amp;
-  \def\mathdef152#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef152{memory} \\ &amp;&amp;|&amp;
-  \def\mathdef153#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef153{global} \\ &amp;&amp;|&amp;
-  \def\mathdef154#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef154{export} \\ &amp;&amp;|&amp;
-  \def\mathdef155#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef155{start} \\ &amp;&amp;|&amp;
-  \def\mathdef156#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef156{elem} \\ &amp;&amp;|&amp;
-  \def\mathdef157#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef157{code} \\ &amp;&amp;|&amp;
-  \def\mathdef158#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef158{data} \\ &amp;&amp;|&amp;
-  \def\mathdef159#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef159{datacount} \\
+  \def\mathdef147#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef147{type} \\ &amp;&amp;|&amp;
+  \def\mathdef148#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef148{import} \\ &amp;&amp;|&amp;
+  \def\mathdef149#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef149{func} \\ &amp;&amp;|&amp;
+  \def\mathdef150#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef150{table} \\ &amp;&amp;|&amp;
+  \def\mathdef151#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef151{memory} \\ &amp;&amp;|&amp;
+  \def\mathdef152#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef152{global} \\ &amp;&amp;|&amp;
+  \def\mathdef153#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef153{export} \\ &amp;&amp;|&amp;
+  \def\mathdef154#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef154{start} \\ &amp;&amp;|&amp;
+  \def\mathdef155#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef155{elem} \\ &amp;&amp;|&amp;
+  \def\mathdef156#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef156{code} \\ &amp;&amp;|&amp;
+  \def\mathdef157#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef157{data} \\ &amp;&amp;|&amp;
+  \def\mathdef158#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef158{datacount} \\
 \end{array}\end{split}\]</div>
 <p>The first <a class="reference internal" href="../text/values.html#text-string"><span class="std std-ref">string</span></a> in a custom annotation denotes the name of the custom section it represents.
 The remaining strings collectively represent the section’s payload data, written as a <a class="reference internal" href="../text/modules.html#text-datastring"><span class="std std-ref">data string</span></a>, which can be split up into a possibly empty sequence of individual string literals (similar to <a class="reference internal" href="../text/modules.html#text-data"><span class="std std-ref">data segments</span></a>).</p>
@@ -419,10 +419,10 @@ and at most one branch hint annotation may be given per instruction.</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{array}{llclll}
 \def\mathdef79#1{{}}\mathdef79{branch hint annotation} &amp; \href{../appendix/custom.html#text-branchhintannot}{\mathtt{branchhintannot}} &amp;::=&amp;
-  \def\mathdef160#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef160{(&#64;metadata.code.branch\_hint}~\href{../appendix/custom.html#text-branchhintannot}{\mathtt{branchhintstr}}~\def\mathdef161#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef161{)} \\
+  \def\mathdef159#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef159{(&#64;metadata.code.branch\_hint}~\href{../appendix/custom.html#text-branchhintannot}{\mathtt{branchhintstr}}~\def\mathdef160#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef160{)} \\
 \def\mathdef79#1{{}}\mathdef79{branch hint string} &amp; \href{../appendix/custom.html#text-branchhintannot}{\mathtt{branchhintstr}} &amp;::=&amp;
-  \def\mathdef162#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef162{&quot;\backslash 00&quot;} \\ &amp;&amp;|&amp;
-  \def\mathdef163#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef163{&quot;\backslash 01&quot;} \\
+  \def\mathdef161#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef161{&quot;\backslash 00&quot;} \\ &amp;&amp;|&amp;
+  \def\mathdef162#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef162{&quot;\backslash 01&quot;} \\
 \end{array}\end{split}\]</div>
 </section>
 </section>
