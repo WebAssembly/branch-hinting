@@ -289,6 +289,32 @@ and import' =
   idesc : import_desc;
 }
 
+type section_ident =
+  | Type
+  | Import
+  | Func
+  | Table
+  | Memory
+  | Global
+  | Export
+  | Start
+  | Elem
+  | DataCount
+  | Code
+  | Data
+
+type custom_placement =
+  | Before of section_ident
+  | After of section_ident
+
+type custom = custom' Source.phrase
+and custom' =
+{
+  custom_name : name;
+  custom_data : string;
+  placement: custom_placement;
+}
+
 type module_ = module_' Source.phrase
 and module_' =
 {
@@ -302,6 +328,7 @@ and module_' =
   datas : data_segment list;
   imports : import list;
   exports : export list;
+  customs : custom list;
 }
 
 
@@ -319,6 +346,7 @@ let empty_module =
   datas = [];
   imports = [];
   exports = [];
+  customs = [];
 }
 
 open Source

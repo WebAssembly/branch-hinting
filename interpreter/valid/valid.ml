@@ -704,7 +704,7 @@ let check_export (c : context) (set : NameSet.t) (ex : export) : NameSet.t =
 let check_module (m : module_) =
   let
     { types; imports; tables; memories; globals; funcs; start; elems; datas;
-      exports } = m.it
+      exports; customs } = m.it
   in
   let c0 =
     List.fold_right check_import imports

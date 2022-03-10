@@ -1029,14 +1029,16 @@ let data_count_section s =
 
 (* Custom section *)
 
-let custom size s =
+let custom' p size s =
   let start = pos s in
   let id = name s in
   let bs = get_string (size - (pos s - start)) s in
-  Some (id, bs)
+  {custom_name = id; custom_data = bs; placement = p}
 
-let custom_section s =
-  section_with_size `CustomSection custom None s
+let custom p size s = Some (at (custom' p size) s)
+
+let custom_section p s =
+  section_with_size `CustomSection (custom p) None s
 
 let non_custom_section s =
   match id s with
@@ -1046,7 +1048,10 @@ let non_custom_section s =
 
 (* Modules *)
 
-let rec iterate f s = if f s <> None then iterate f s
+let rec iterate f s =
+    match f s with
+    | None -> []
+    | Some x -> x :: iterate f s
 
 let magic = 0x6d736100l
 
@@ -1055,31 +1060,32 @@ let module_ s =
   require (header = magic) s 0 "magic header not detected";
   let version = u32 s in
   require (version = Encode.version) s 4 "unknown binary version";
-  iterate custom_section s;
+  let customs = iterate (custom_section (Before (Type))) s in
   let types = type_section s in
-  iterate custom_section s;
+  let customs = customs @ iterate (custom_section (Before (Import))) s in
   let imports = import_section s in
-  iterate custom_section s;
+  let customs = customs @ iterate (custom_section (Before (Func))) s in
   let func_types = func_section s in
-  iterate custom_section s;
+  let customs = customs @ iterate (custom_section (Before (Table))) s in
   let tables = table_section s in
-  iterate custom_section s;
+  let customs = customs @ iterate (custom_section (Before (Memory))) s in
   let memories = memory_section s in
-  iterate custom_section s;
+  let customs = customs @ iterate (custom_section (Before (Global))) s in
   let globals = global_section s in
-  iterate custom_section s;
+  let customs = customs @ iterate (custom_section (Before (Export))) s in
   let exports = export_section s in
-  iterate custom_section s;
+  let customs = customs @ iterate (custom_section (Before (Start))) s in
   let start = start_section s in
-  iterate custom_section s;
+  let customs = customs @ iterate (custom_section (Before (Elem))) s in
   let elems = elem_section s in
-  iterate custom_section s;
+  let customs = customs @ iterate (custom_section (Before (DataCount))) s in
   let data_count = data_count_section s in
-  iterate custom_section s;
+  let customs = customs @ iterate (custom_section (Before (Code))) s in
   let func_bodies = code_section s in
-  iterate custom_section s;
+  let customs = customs @ iterate (custom_section (Before (Data))) s in
   let datas = data_section s in
-  iterate custom_section s;
+  let customs = customs @ iterate (custom_section (After (Data))) s in
+  let customs = if !Flags.custom then customs else [] in
   require (pos s = len s) s (len s) "unexpected content after last section";
   require (List.length func_types = List.length func_bodies)
     s (len s) "function and code section have inconsistent lengths";
@@ -1091,22 +1097,24 @@ let module_ s =
   let funcs =
     List.map2 Source.(fun t f -> {f.it with ftype = t} @@ f.at)
       func_types func_bodies
-  in {types; tables; memories; globals; funcs; imports; exports; elems; datas; start}
+  in {types; tables; memories; globals; funcs; imports; exports; elems; datas; start; customs}
 
 
 let decode name bs = at module_ (stream name bs)
 
+(*
 let all_custom tag s =
   let header = u32 s in
   require (header = magic) s 0 "magic header not detected";
   let version = u32 s in
   require (version = Encode.version) s 4 "unknown binary version";
   let rec collect () =
-    iterate non_custom_section s;
+    let _ = iterate non_custom_section s in
     match custom_section s with
     | None -> []
-    | Some (n, s) when n = tag -> s :: collect ()
+    | Some {custom_name; custom_data} when n = custom_name -> {custom_name; custom_data} :: collect ()
     | Some _ -> collect ()
   in collect ()
 
 let decode_custom tag name bs = all_custom tag (stream name bs)
+*)

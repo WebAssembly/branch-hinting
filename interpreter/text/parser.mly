@@ -223,11 +223,13 @@ let inline_type_explicit (c : context) x ft at =
 %token VEC_EXTRACT VEC_REPLACE
 %token FUNC START TYPE PARAM RESULT LOCAL GLOBAL
 %token TABLE ELEM MEMORY DATA DECLARE OFFSET ITEM IMPORT EXPORT
+%token CODE DATACOUNT BEFORE AFTER FIRST LAST
 %token MODULE BIN QUOTE
 %token SCRIPT REGISTER INVOKE GET
 %token ASSERT_MALFORMED ASSERT_INVALID ASSERT_SOFT_INVALID ASSERT_UNLINKABLE
 %token ASSERT_RETURN ASSERT_TRAP ASSERT_EXHAUSTION
 %token NAN
+%token ANNOT_CUSTOM
 %token INPUT OUTPUT
 %token EOF
 
@@ -924,6 +926,68 @@ global :
       fun c -> let x = $3 c anon_global bind_global @@ at in
       fun () -> $4 c x at }
 
+secpos :
+  | BEFORE FIRST
+    { (Before (Type)) }
+  | BEFORE TYPE
+    { (Before (Type)) }
+  | BEFORE IMPORT
+    { (Before (Import)) }
+  | BEFORE FUNC
+    { (Before (Func)) }
+  | BEFORE TABLE
+    { (Before (Table)) }
+  | BEFORE MEMORY
+    { (Before (Memory)) }
+  | BEFORE GLOBAL
+    { (Before (Global)) }
+  | BEFORE EXPORT
+    { (Before (Export)) }
+  | BEFORE START
+    { (Before (Start)) }
+  | BEFORE ELEM
+    { (Before (Elem)) }
+  | BEFORE CODE
+    { (Before (Code)) }
+  | BEFORE DATA
+    { (Before (Data)) }
+  | BEFORE DATACOUNT
+    { (Before (DataCount)) }
+  | AFTER TYPE
+    { (After (Type)) }
+  | AFTER IMPORT
+    { (After (Import)) }
+  | AFTER FUNC
+    { (After (Func)) }
+  | AFTER TABLE
+    { (After (Table)) }
+  | AFTER MEMORY
+    { (After (Memory)) }
+  | AFTER GLOBAL
+    { (After (Global)) }
+  | AFTER EXPORT
+    { (After (Export)) }
+  | AFTER START
+    { (After (Start)) }
+  | AFTER ELEM
+    { (After (Elem)) }
+  | AFTER DATACOUNT
+    { (After (DataCount)) }
+  | AFTER CODE
+    { (After (Code)) }
+  | AFTER DATA
+    { (After (Data)) }
+  | AFTER LAST
+    { (After (Data)) }
+
+annot_custom :
+  | ANNOT_CUSTOM name LPAR secpos RPAR string_list  RPAR
+    { let at = at () in
+    {custom_name = $2; custom_data = $6; placement = $4} @@ at }
+  | ANNOT_CUSTOM name string_list  RPAR
+    { let at = at () in
+    {custom_name = $2; custom_data = $3; placement = After (Data)} @@ at }
+
 global_fields :
   | global_type const_expr
     { fun c x at -> [{gtype = $1; ginit = $2 c} @@ at], [], [] }
@@ -1055,6 +1119,10 @@ module_fields1 :
     { fun c -> let mf = $2 c in
       fun () -> let m = mf () in
       {m with exports = $1 c :: m.exports} }
+  | annot_custom module_fields
+    { fun c -> let mf = $2 c in
+      fun () -> let m = mf () in
+      {m with customs = $1 :: m.customs} }
 
 module_var_opt :
   | /* empty */ { None }

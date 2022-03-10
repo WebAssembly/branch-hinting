@@ -878,22 +878,51 @@ struct
   let custom_section n bs =
     section 0 custom (n, bs) true
 
+  let custom_section_filter p xs =
+    List.filter (fun (cs) -> cs.it.placement = p) xs
+  let custom_sections p xs =
+    list (fun (cs) -> custom_section cs.it.custom_name cs.it.custom_data) (custom_section_filter p xs)
+
   (* Module *)
   let module_ m =
     u32 0x6d736100l;
     u32 version;
+    custom_sections (Before (Type)) m.it.customs;
     type_section m.it.types;
+    custom_sections (After (Type)) m.it.customs;
+    custom_sections (Before (Import)) m.it.customs;
     import_section m.it.imports;
+    custom_sections (After (Import)) m.it.customs;
+    custom_sections (Before (Func)) m.it.customs;
     func_section m.it.funcs;
+    custom_sections (After (Func)) m.it.customs;
+    custom_sections (Before (Table)) m.it.customs;
     table_section m.it.tables;
+    custom_sections (After (Table)) m.it.customs;
+    custom_sections (Before (Memory)) m.it.customs;
     memory_section m.it.memories;
+    custom_sections (After (Memory)) m.it.customs;
+    custom_sections (Before (Global)) m.it.customs;
     global_section m.it.globals;
+    custom_sections (After (Global)) m.it.customs;
+    custom_sections (Before (Export)) m.it.customs;
     export_section m.it.exports;
+    custom_sections (After (Export)) m.it.customs;
+    custom_sections (Before (Start)) m.it.customs;
     start_section m.it.start;
+    custom_sections (After (Start)) m.it.customs;
+    custom_sections (Before (Elem)) m.it.customs;
     elem_section m.it.elems;
+    custom_sections (After (Elem)) m.it.customs;
+    custom_sections (Before (DataCount)) m.it.customs;
     data_count_section m.it.datas m;
+    custom_sections (After (DataCount)) m.it.customs;
+    custom_sections (Before (Code)) m.it.customs;
     code_section m.it.funcs;
-    data_section m.it.datas
+    custom_sections (After (Code)) m.it.customs;
+    custom_sections (Before (Data)) m.it.customs;
+    data_section m.it.datas;
+    custom_sections (After (Data)) m.it.customs;
 end
 
 

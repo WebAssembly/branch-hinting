@@ -669,6 +669,13 @@ rule token = parse
       | "import" -> IMPORT
       | "export" -> EXPORT
 
+      | "code" -> CODE
+      | "datacount" -> DATACOUNT
+      | "before" -> BEFORE
+      | "after" -> AFTER
+      | "first" -> FIRST
+      | "last" -> LAST
+
       | "module" -> MODULE
       | "binary" -> BIN
       | "quote" -> QUOTE
@@ -696,6 +703,7 @@ rule token = parse
 
   | id as s { VAR s }
 
+  | "(@custom" { if !Flags.custom then ANNOT_CUSTOM else (annot (Lexing.lexeme_start_p lexbuf) lexbuf; token lexbuf) }
   | "(@"name { annot (Lexing.lexeme_start_p lexbuf) lexbuf; token lexbuf }
   | "(@" { error lexbuf "malformed annotation id" }
 

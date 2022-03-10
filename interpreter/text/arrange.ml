@@ -581,6 +581,29 @@ let data i seg =
   let {dinit; dmode} = seg.it in
   Node ("data $" ^ nat i, segment_mode "memory" dmode @ break_bytes dinit)
 
+let section_ident s =
+  match s with
+  | Type -> "type"
+  | Import -> "import"
+  | Func -> "func"
+  | Table -> "table"
+  | Memory -> "memory"
+  | Global -> "global"
+  | Export -> "export"
+  | Start -> "start"
+  | Elem -> "elem"
+  | DataCount -> "datacount"
+  | Code -> "code"
+  | Data -> "data"
+
+let custom_placement p =
+  match p with
+  | Before (id) -> Node ("before", [atom section_ident id])
+  | After (id) -> Node ("after", [atom section_ident id])
+
+let custom sec = 
+  let {custom_name; custom_data; placement} = sec.it in
+  Node ("@custom " ^ name custom_name, custom_placement placement :: break_bytes custom_data)
 
 (* Modules *)
 
@@ -642,7 +665,8 @@ let module_with_var_opt x_opt m =
     list export m.it.exports @
     opt start m.it.start @
     listi elem m.it.elems @
-    listi data m.it.datas
+    listi data m.it.datas @
+    list custom m.it.customs
   )
 
 let binary_module_with_var_opt x_opt bs =
