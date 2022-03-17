@@ -18,6 +18,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--wasm", metavar="<wasm-command>", default=os.path.join(os.getcwd(), "wasm"))
 parser.add_argument("--js", metavar="<js-command>")
 parser.add_argument("--out", metavar="<out-dir>", default=outputDir)
+parser.add_argument("--custom", action='store_true', default=False)
 parser.add_argument("file", nargs='*')
 arguments = parser.parse_args()
 sys.argv = sys.argv[:1]
@@ -25,11 +26,16 @@ sys.argv = sys.argv[:1]
 main_test_files = glob.glob(os.path.join(inputDir, "*.wast"))
 # SIMD test files are in a subdirectory.
 simd_test_files = glob.glob(os.path.join(inputDir, "simd", "*.wast"))
+# Custom sections / annotations test files are in a subdirectory.
+custom_test_files = glob.glob(os.path.join(inputDir, "custom", "*.wast"))
 
 wasmCommand = arguments.wasm
 jsCommand = arguments.js
 outputDir = arguments.out
 inputFiles = arguments.file if arguments.file else main_test_files + simd_test_files
+enableCustom = arguments.custom
+if enableCustom:
+  inputFiles += custom_test_files
 
 if not os.path.exists(wasmCommand):
   sys.stderr.write("""\
@@ -64,10 +70,15 @@ class RunTests(unittest.TestCase):
     dir, inputFile = os.path.split(inputPath)
     outputPath = os.path.join(outputDir, inputFile)
 
+    isCustom = os.path.split(dir)[1] == "custom"
+    if isCustom:
+      customOpt = " -c"
+    else:
+      customOpt = ""
     # Run original file
     expectedExitCode = 1 if ".fail." in inputFile else 0
     logPath = self._auxFile(outputPath + ".log")
-    self._runCommand(('%s "%s"') % (wasmCommand, inputPath), logPath, expectedExitCode)
+    self._runCommand(('%s %s "%s"') % (wasmCommand, customOpt, inputPath), logPath, expectedExitCode)
 
     if expectedExitCode != 0:
       return
@@ -75,32 +86,33 @@ class RunTests(unittest.TestCase):
     # Convert to binary and run again
     wasmPath = self._auxFile(outputPath + ".bin.wast")
     logPath = self._auxFile(wasmPath + ".log")
-    self._runCommand(('%s -d "%s" -o "%s"') % (wasmCommand, inputPath, wasmPath), logPath)
-    self._runCommand(('%s "%s"') % (wasmCommand, wasmPath), logPath)
+    self._runCommand(('%s %s -d "%s" -o "%s"') % (wasmCommand, customOpt, inputPath, wasmPath), logPath)
+    self._runCommand(('%s %s "%s"') % (wasmCommand, customOpt, wasmPath), logPath)
 
     # Convert back to text and run again
     wastPath = self._auxFile(wasmPath + ".wast")
     logPath = self._auxFile(wastPath + ".log")
-    self._runCommand(('%s -d "%s" -o "%s"') % (wasmCommand, wasmPath, wastPath), logPath)
-    self._runCommand(('%s "%s"') % (wasmCommand, wastPath), logPath)
+    self._runCommand(('%s %s -d "%s" -o "%s"') % (wasmCommand, customOpt, wasmPath, wastPath), logPath)
+    self._runCommand(('%s %s "%s"') % (wasmCommand, customOpt, wastPath), logPath)
 
     # Convert back to binary once more and compare
     wasm2Path = self._auxFile(wastPath + ".bin.wast")
     logPath = self._auxFile(wasm2Path + ".log")
-    self._runCommand(('%s -d "%s" -o "%s"') % (wasmCommand, wastPath, wasm2Path), logPath)
+    self._runCommand(('%s %s -d "%s" -o "%s"') % (wasmCommand, customOpt, wastPath, wasm2Path), logPath)
     self._compareFile(wasmPath, wasm2Path)
 
     # Convert back to text once more and compare
     wast2Path = self._auxFile(wasm2Path + ".wast")
     logPath = self._auxFile(wast2Path + ".log")
-    self._runCommand(('%s -d "%s" -o "%s"') % (wasmCommand, wasm2Path, wast2Path), logPath)
+    self._runCommand(('%s %s -d "%s" -o "%s"') % (wasmCommand, customOpt, wasm2Path, wast2Path), logPath)
     self._compareFile(wastPath, wast2Path)
 
-    jsPath = self._auxFile(outputPath.replace(".wast", ".js"))
-    logPath = self._auxFile(jsPath + ".log")
-    self._runCommand(('%s -d "%s" -o "%s"') % (wasmCommand, inputPath, jsPath), logPath)
-    if jsCommand != None:
-      self._runCommand(('%s "%s"') % (jsCommand, jsPath), logPath)
+    if not isCustom:
+      jsPath = self._auxFile(outputPath.replace(".wast", ".js"))
+      logPath = self._auxFile(jsPath + ".log")
+      self._runCommand(('%s -d "%s" -o "%s"') % (wasmCommand, inputPath, jsPath), logPath)
+      if jsCommand != None:
+        self._runCommand(('%s "%s"') % (jsCommand, jsPath), logPath)
 
 
 if __name__ == "__main__":
