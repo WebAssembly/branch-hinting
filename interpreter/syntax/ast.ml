@@ -315,6 +315,16 @@ and custom' =
   placement: custom_placement;
 }
 
+type branch_hint_kind =
+  | Likely
+  | Unlikely
+  | Invalid
+type branch_hint = branch_hint' Source.phrase
+and branch_hint' =
+{
+  hint: branch_hint_kind;
+}
+
 type module_ = module_' Source.phrase
 and module_' =
 {

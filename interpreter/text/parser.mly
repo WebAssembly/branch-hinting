@@ -230,6 +230,7 @@ let inline_type_explicit (c : context) x ft at =
 %token ASSERT_RETURN ASSERT_TRAP ASSERT_EXHAUSTION
 %token NAN
 %token ANNOT_CUSTOM
+%token ANNOT_BRANCH_HINT
 %token INPUT OUTPUT
 %token EOF
 
@@ -404,6 +405,7 @@ instr :
   | call_instr_instr { fun c -> let e, es = $1 c in e :: es }
   | block_instr { let at = at () in fun c -> [$1 c @@ at] }
   | expr { $1 } /* Sugar */
+  | annot_branch_hint { fun c -> []}
 
 plain_instr :
   | UNREACHABLE { fun c -> unreachable }
@@ -987,6 +989,16 @@ annot_custom :
   | ANNOT_CUSTOM name string_list  RPAR
     { let at = at () in
     {custom_name = $2; custom_data = $3; placement = After (Data)} @@ at }
+
+annot_branch_hint :
+  | ANNOT_BRANCH_HINT string_list RPAR
+    { let at = at () in
+      let kind = match $2 with
+        | "\00" -> Likely
+        | "\01" -> Unlikely
+        | _ -> Invalid
+      in
+    { hint = kind} @@ at }
 
 global_fields :
   | global_type const_expr
