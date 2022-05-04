@@ -130,6 +130,9 @@ let encode_vec buf f v =
   it v
 
 let encode_hint buf h =
+  (* ISSUE: Here we are supposed to encode the byte offset of the hinted instruction
+   from the beginning of the function, but we don't have this information yet,
+   and we have no way of getting it with the current design *)
   encode_size buf h.at.left.column;
   encode_u32 buf 1l;
   let b = match h.it with
@@ -209,6 +212,10 @@ and parse_annot m annot =
 (* Printing *)
 
 let arrange m fmt =
+  (* ISSUE: just delegating @custom does not work for code metadata:
+    we need the byte offsets of the final wasm file, but we are producing text.
+    There is no guarantee that when converting to binary the offsets will stay the same.
+    On the other hand, it is currently impossible to inject text annotations in the code section *)
   (* Print as generic custom section *)
   Handler_custom.arrange m (encode m fmt)
 
