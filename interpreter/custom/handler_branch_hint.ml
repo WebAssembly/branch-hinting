@@ -3,6 +3,7 @@
 open Custom
 open Annot
 open Source
+open Ast
 
 module IdxMap = Map.Make(Int32)
 
@@ -89,7 +90,7 @@ let decode_hint foff s =
 let decode_func_hints foff =
   decode_vec (decode_hint foff)
 
-let get_func (m: Ast.module_) fidx =
+let get_func m fidx =
   let nimp = List.length m.it.imports in
   let fn = (Int32.to_int fidx) - nimp in
   List.nth m.it.funcs fn
@@ -224,7 +225,22 @@ let arrange m fmt =
     There is no guarantee that when converting to binary the offsets will stay the same.
     On the other hand, it is currently impossible to inject text annotations in the code section *)
   (* Print as generic custom section *)
+  (*
   Handler_custom.arrange m (encode m fmt)
+  *)
+  let hint_to_string = function
+    | Likely -> "\"\\01\""
+    | Unlikely -> "\"\\00\"" in
+
+  let arrange_one h =
+    (Sexpr.Node ("@metadata.code.branch_hint ", [Sexpr.Atom (hint_to_string h.it)])) @@ h.at in 
+  let arrange_func (f, hs) =
+    List.map arrange_one hs in
+  let arrange_funcs (fhs) =
+    List.concat (List.map arrange_func fhs) in
+  CodeAnnot (arrange_funcs (List.of_seq (IdxMap.to_seq fmt.it.func_hints)))
+
+
 
 
 (* Checking *)

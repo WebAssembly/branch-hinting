@@ -4,6 +4,7 @@ open Script
 open Values
 open Types
 open Sexpr
+open Custom
 
 
 (* Generic formatting *)
@@ -39,6 +40,7 @@ let list_of_opt = function None -> [] | Some x -> [x]
 
 let list f xs = List.map f xs
 let listi f xs = List.mapi f xs
+let listf f xs = List.flatten (List.map f xs)
 let opt f xo = list f (list_of_opt xo)
 
 let tab head f xs = if xs = [] then [] else [Node (head, list f xs)]
@@ -431,7 +433,17 @@ let block_type = function
   | VarBlockType x -> [Node ("type " ^ var x, [])]
   | ValBlockType ts -> decls "result" (list_of_opt ts)
 
-let rec instr e =
+let find_annots at annots =
+  let acc_annot annot acc =
+    if at.left.column = annot.at.left.column then
+      annot.it :: acc
+    else
+      acc
+  in
+  List.fold_right acc_annot annots []
+
+let rec instr cs e =
+  let annots = find_annots e.at cs in
   let head, inner =
     match e.it with
     | Unreachable -> "unreachable", []
@@ -440,11 +452,11 @@ let rec instr e =
     | Select None -> "select", []
     | Select (Some []) -> "select", [Node ("result", [])]
     | Select (Some ts) -> "select", decls "result" ts
-    | Block (bt, es) -> "block", block_type bt @ list instr es
-    | Loop (bt, es) -> "loop", block_type bt @ list instr es
+    | Block (bt, es) -> "block", block_type bt @ listf (instr cs) es
+    | Loop (bt, es) -> "loop", block_type bt @ listf (instr cs) es
     | If (bt, es1, es2) ->
       "if", block_type bt @
-        [Node ("then", list instr es1); Node ("else", list instr es2)]
+        [Node ("then", listf (instr cs) es1); Node ("else", listf (instr cs) es2)]
     | Br x -> "br " ^ var x, []
     | BrIf x -> "br_if " ^ var x, []
     | BrTable (xs, x) ->
@@ -502,29 +514,29 @@ let rec instr e =
     | VecSplat op -> vec_splatop op, []
     | VecExtract op -> vec_extractop op, []
     | VecReplace op -> vec_replaceop op, []
-  in Node (head, inner)
+  in annots @ [Node (head, inner)]
 
 let const head c =
   match c.it with
-  | [e] -> instr e
-  | es -> Node (head, list instr c.it)
+  | [e] -> List.hd (instr [] e)
+  | es -> Node (head, listf (instr []) c.it)
 
 
 (* Functions *)
 
-let func_with_name name f =
+let func_with_name name cs f =
   let {ftype; locals; body} = f.it in
   Node ("func" ^ name,
     [Node ("type " ^ var ftype, [])] @
     decls "local" locals @
-    list instr body
+    listf (instr cs) body
   )
 
-let func_with_index off i f =
-  func_with_name (" $" ^ nat (off + i)) f
+let func_with_index off cs i f =
+  func_with_name (" $" ^ nat (off + i)) cs f
 
 let func f =
-  func_with_name "" f
+  func_with_name "" [] f
 
 let start x = Node ("start " ^ var x, [])
 
@@ -617,14 +629,16 @@ let export ex =
 
 let global off i g =
   let {gtype; ginit} = g.it in
-  Node ("global $" ^ nat (off + i), global_type gtype :: list instr ginit.it)
+  Node ("global $" ^ nat (off + i), global_type gtype :: listf (instr []) ginit.it)
 
 
 (* Custom section *)
 
 let custom_section m place (module S : Custom.Section) =
   if Custom.(compare_place (S.Handler.place S.it) place) <= +1 then
-    Some (S.Handler.arrange m S.it)
+    match S.Handler.arrange m S.it with
+    | CustomAnnot c -> Some c
+    | _ -> None
   else
     None
 
@@ -642,12 +656,21 @@ let var_opt = function
   | None -> ""
   | Some x -> " " ^ x.it
 
+let collect_handler_annots m (module S : Custom.Section) =
+  match S.Handler.arrange m S.it with
+  | CustomAnnot _ -> []
+  | CodeAnnot cas -> cas
+
+let collect_all_annots m cs =
+  List.flatten (List.map (collect_handler_annots m) cs)
+
 let module_with_var_opt x_opt (m, cs) =
   let fx = ref 0 in
   let tx = ref 0 in
   let mx = ref 0 in
   let gx = ref 0 in
   let imports = list (import fx tx mx gx) m.it.imports in
+  let annots = collect_all_annots m cs in
   let open Custom in
   Node ("module" ^ var_opt x_opt,
     let secs, cs = iterate (custom_section m (Before Type)) cs in secs @
@@ -667,7 +690,7 @@ let module_with_var_opt x_opt (m, cs) =
     let secs, cs = iterate (custom_section m (Before Elem)) cs in secs @
     listi elem m.it.elems @
     let secs, cs = iterate (custom_section m (Before Code)) cs in secs @
-    listi (func_with_index !fx) m.it.funcs @
+    listi (func_with_index !fx annots) m.it.funcs @
     let secs, cs = iterate (custom_section m (Before Data)) cs in secs @
     listi data m.it.datas @
     let secs, cs = iterate (custom_section m (After Data)) cs in secs

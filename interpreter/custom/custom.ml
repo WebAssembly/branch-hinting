@@ -45,6 +45,10 @@ exception Code of Source.region * string
 exception Syntax of Source.region * string
 exception Invalid of Source.region * string
 
+type annot_kind =
+  | CustomAnnot of Sexpr.sexpr
+  | CodeAnnot of Sexpr.sexpr Source.phrase list
+
 module type Handler =
 sig
   type format'
@@ -54,7 +58,7 @@ sig
   val decode : Ast.module_ -> custom -> format (* raise Code *)
   val encode : Ast.module_ -> format -> custom
   val parse : Ast.module_ -> Annot.annot list -> format list (* raise Syntax *)
-  val arrange : Ast.module_ -> format -> Sexpr.sexpr
+  val arrange : Ast.module_ -> format -> annot_kind
   val check : Ast.module_ -> format -> unit (* raise Invalid *)
 end
 

@@ -130,9 +130,9 @@ open Sexpr
 
 let rec arrange _m custom =
   let {name; content; place} = custom.it in
-  Node ("@custom " ^ Arrange.name name,
+  CustomAnnot (Node ("@custom " ^ Arrange.name name,
     arrange_place place :: Arrange.break_bytes content
-  )
+  ))
 
 and arrange_place = function
   | Before sec -> Node ("before", [Atom (arrange_sec sec)])
