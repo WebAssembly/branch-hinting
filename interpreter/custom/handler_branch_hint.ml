@@ -16,14 +16,37 @@ type format = format' Source.phrase
 and format' =
 {
   func_hints: func_hints;
+  gaps: (int * Source.region * Source.region) list ref;
 }
 
 
-let empty = {func_hints = IdxMap.empty }
+let empty = {func_hints = IdxMap.empty; gaps = ref [] }
 
 let name = Utf8.decode "metadata.code.branch_hint"
 
 let place _fmt = Before Code
+
+let is_contained r1 r2 = r1.left >= r2.left && r1.right <= r2.right
+let is_left r1 r2 = r1.right.line <= r2.left.line && r1.right.column <= r2.left.column
+
+let rec find_inst' i at =
+  if is_left at i.at then
+    Some i
+  else match i.it with
+  | Block (bt, es) -> find_inst es at
+  | Loop (bt, es) -> find_inst es at
+  | If (bt, es, es') ->
+      (match find_inst es at with
+      | Some i -> Some i
+      | None -> find_inst es' at)
+  | _ -> None
+
+and find_inst es at = match es with
+| [] -> None
+| e::es ->
+    match find_inst' e at with
+    | None -> find_inst es at
+    | Some i -> Some i
 
 
 (* Decoding *)
@@ -108,7 +131,7 @@ let decode_funcs m s =
 let decode m custom =
   let s = stream custom.it.content in
   try
-    { func_hints = decode_funcs m s } @@ custom.at
+    { func_hints = decode_funcs m s; gaps = ref [] } @@ custom.at
   with EOS -> decode_error (pos s) "unexpected end of name section"
 
 
@@ -127,6 +150,20 @@ let rec encode_u32 buf i =
     encode_u32 buf (Int32.shift_right_logical i 7)
   )
 
+let pos buf = Buffer.length buf
+let gap32 buf = let p = pos buf in encode_u32 buf 0l; encode_byte buf 0; p
+  
+let patch_gap32 p n =
+  assert (n <= 0x0fff_ffff); (* Strings cannot excess 2G anyway *)
+  let patch ps pos b = (pos, b) :: ps in
+  let lsb i = Char.chr (i land 0xff) in
+  let ps = patch [] p (lsb (n lor 0x80)) in
+  let ps = patch ps (p + 1) (lsb ((n lsr 7) lor 0x80)) in
+  let ps = patch ps (p + 2) (lsb ((n lsr 14) lor 0x80)) in
+  let ps = patch ps (p + 3) (lsb ((n lsr 21) lor 0x80)) in
+  let ps = patch ps (p + 4) (lsb (n lsr 28)) in
+  ps
+
 let encode_size buf n =
   encode_u32 buf (Int32.of_int n)
 
@@ -137,44 +174,55 @@ let encode_vec buf f v =
   | e::es -> f buf e; it es in
   it v
 
-let encode_hint buf h =
-  (* ISSUE: Here we are supposed to encode the byte offset of the hinted instruction
-   from the beginning of the function, but we don't have this information yet,
-   and we have no way of getting it with the current design *)
-  encode_size buf h.at.left.column;
+let encode_hint gaps func buf h =
+  let g = gap32 buf in
+  let i = Option.get (find_inst func.it.body h.at) in
+  gaps := (g, func.at, i.at) :: !gaps;
   encode_u32 buf 1l;
   let b = match h.it with
   | Unlikely -> 0l
   | Likely -> 1l in
   encode_u32 buf b
 
-let encode_func_hints buf =
-  encode_vec buf encode_hint
+let encode_func_hints m gaps buf f =
+  let fn = (Int32.to_int f) - (List.length m.it.imports) in
+  let func = List.nth m.it.funcs fn in
+  encode_vec buf (encode_hint gaps func)
 
-let encode_func buf t =
+let encode_func m gaps buf t =
   let f, hs = t in
   encode_u32 buf f;
-  encode_func_hints buf hs
+  encode_func_hints m gaps buf f hs
 
-let encode_funcs buf fhs =
-  encode_vec buf encode_func (List.of_seq (IdxMap.to_seq fhs))
+let encode_funcs m gaps buf fhs =
+  encode_vec buf (encode_func m gaps) (List.of_seq (IdxMap.to_seq fhs))
 
-let encode _m sec =
-  let {func_hints} = sec.it in
+let encode m sec =
+  let {func_hints; gaps} = sec.it in
   let buf = Buffer.create 200 in
-  encode_funcs buf func_hints;
+  encode_funcs m gaps buf func_hints;
   let content = Buffer.contents buf in
   {name = Utf8.decode "metadata.code.branch_hint"; content; place = Before Code} @@ sec.at
 
+
+let patch_one ros off gap =
+  let pos, fat, hat = gap in
+  let foff = Hashtbl.find ros fat in
+  let hoff = Hashtbl.find ros hat in
+  let p = hoff - foff in
+  patch_gap32 (pos+off) p
+
+let patch _m f cp =
+  let gaps = !(f.it.gaps) in
+  let off = cp.custom_offset in
+  let ros = cp.region_offsets in
+  List.concat_map (patch_one ros off) gaps
 
 (* Parsing *)
 
 open Ast
 
 let parse_error at msg = raise (Custom.Syntax (at, msg))
-
-let is_contained r1 r2 = r1.left >= r2.left && r1.right <= r2.right
-let is_left r1 r2 = r1.right.line <= r2.left.line && r1.right.column <= r2.left.column
 
 let merge_func_hints = IdxMap.merge (fun key x y ->
   match x, y with
@@ -185,7 +233,8 @@ let merge_func_hints = IdxMap.merge (fun key x y ->
 
 let merge s1 s2 =
   {
-    func_hints = merge_func_hints s1.it.func_hints s2.it.func_hints
+    func_hints = merge_func_hints s1.it.func_hints s2.it.func_hints;
+    gaps = ref (!(s1.it.gaps) @ !(s2.it.gaps))
   } @@ {left = s1.at.left; right = s2.at.right}
 
 let find_func_idx m annot =
@@ -214,7 +263,7 @@ and parse_annot m annot =
   | "\x00" -> Unlikely
   | "\x01" -> Likely
   | _ -> parse_error annot.at ("Branch hint has an invalid value" ^ p) in
-  let e = { func_hints = IdxMap.add f [hint @@ annot.at] IdxMap.empty } in
+  let e = { func_hints = IdxMap.add f [hint @@ annot.at] IdxMap.empty; gaps = ref [] } in
   e @@ Source.{left = annot.at.left; right = at_last.right}
 
 (* Printing *)
@@ -247,32 +296,13 @@ let arrange m fmt =
 
 let check_error at msg = raise (Custom.Invalid (at, msg))
 
-let rec find_inst' i at =
-  if is_left at i.at then
-    Some i.it
-  else match i.it with
-  | Block (bt, es) -> find_inst es at
-  | Loop (bt, es) -> find_inst es at
-  | If (bt, es, es') ->
-      (match find_inst es at with
-      | Some i -> Some i
-      | None -> find_inst es' at)
-  | _ -> None
-
-and find_inst es at = match es with
-| [] -> None
-| e::es ->
-    match find_inst' e at with
-    | None -> find_inst es at
-    | Some i -> Some i
-
 let check_one m f h =
   let fn = (Int32.to_int f) - (List.length m.imports) in
   let es = (List.nth m.funcs fn).it.body in
   match find_inst es h.at with
   | None -> check_error h.at "@metadata.code.branch_hint annotation: invalid offset"
   | Some i ->
-      (match i with
+      (match i.it with
       | If _ -> ()
       | BrIf _ -> ()
       | _ -> check_error h.at "@metadata.code.branch_hint annotation: invalid target")

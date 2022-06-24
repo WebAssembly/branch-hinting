@@ -27,6 +27,15 @@ and custom' =
   place : place;
 }
 
+type region_offsets = (Source.region, int) Hashtbl.t
+type custom_offsets = (Ast.name, int) Hashtbl.t
+
+type custom_patches =
+{
+  region_offsets: region_offsets;
+  custom_offset: int;
+}
+
 
 let first = Type
 let last = Data
@@ -60,6 +69,7 @@ sig
   val parse : Ast.module_ -> Annot.annot list -> format list (* raise Syntax *)
   val arrange : Ast.module_ -> format -> annot_kind
   val check : Ast.module_ -> format -> unit (* raise Invalid *)
+  val patch: Ast.module_ -> format -> custom_patches -> (int * char) list
 end
 
 module type Section =

@@ -224,6 +224,7 @@ let encode _m sec =
   let content = Buffer.contents buf in
   {name = Utf8.decode "name"; content; place = After last} @@ sec.at
 
+let patch _m _f _cp = []
 
 (* Parsing *)
 
@@ -328,7 +329,7 @@ and parse_end = function
 
 let arrange m fmt =
   (* Print as generic custom section *)
-  Handler_custom.arrange m (encode m fmt)
+  Handler_custom.arrange m ( encode m fmt)
 
 
 (* Checking *)

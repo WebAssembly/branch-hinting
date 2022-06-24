@@ -38,6 +38,8 @@ let decode m custom =
 let encode _m custom = custom
 
 
+let patch _m _f _cp = []
+
 (* Parsing *)
 
 let parse_error at msg = raise (Custom.Syntax (at, msg))

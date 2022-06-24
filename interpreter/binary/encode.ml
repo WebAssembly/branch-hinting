@@ -22,6 +22,7 @@ let pos s = Buffer.length s.buf
 let put s b = Buffer.add_char s.buf b
 let put_string s bs = Buffer.add_string s.buf bs
 let patch s pos b = s.patches := (pos, b) :: !(s.patches)
+let patch_append s ps = s.patches := ps @ !(s.patches)
 
 let to_string s =
   let bs = Buffer.to_bytes s.buf in
@@ -150,17 +151,18 @@ struct
     | ValBlockType None -> vs7 (-0x40)
     | ValBlockType (Some t) -> value_type t
 
-  let rec instr e =
+  let rec instr ros e =
+    Hashtbl.add ros e.at (pos s);
     match e.it with
     | Unreachable -> op 0x00
     | Nop -> op 0x01
 
-    | Block (bt, es) -> op 0x02; block_type bt; list instr es; end_ ()
-    | Loop (bt, es) -> op 0x03; block_type bt; list instr es; end_ ()
+    | Block (bt, es) -> op 0x02; block_type bt; list (instr ros) es; end_ ()
+    | Loop (bt, es) -> op 0x03; block_type bt; list (instr ros) es; end_ ()
     | If (bt, es1, es2) ->
-      op 0x04; block_type bt; list instr es1;
+      op 0x04; block_type bt; list (instr ros) es1;
       if es2 <> [] then op 0x05;
-      list instr es2; end_ ()
+      list (instr ros) es2; end_ ()
 
     | Br x -> op 0x0c; var x
     | BrIf x -> op 0x0d; var x
@@ -700,7 +702,8 @@ struct
     | VecReplace (V128 (F64x2 (V128Op.Replace i))) -> vecop 0x22l; u8 i
 
   let const c =
-    list instr c.it; end_ ()
+    let ros = Hashtbl.create 0 in
+    list (instr ros) c.it; end_ ()
 
   (* Sections *)
 
@@ -792,17 +795,18 @@ struct
 
   let local (t, n) = len n; value_type t
 
-  let code f =
+  let code ros f =
     let {locals; body; _} = f.it in
     let g = gap32 () in
     let p = pos s in
+    Hashtbl.add ros f.at p;
     vec local (compress locals);
-    list instr body;
+    list (instr ros) body;
     end_ ();
     patch_gap32 g (pos s - p)
 
-  let code_section fs =
-    section 10 (vec code) fs (fs <> [])
+  let code_section ros fs =
+    section 10 (vec (code ros)) fs (fs <> [])
 
   (* Element section *)
   let is_elem_kind = function
@@ -871,14 +875,17 @@ struct
     section 12 len (List.length datas) Free.((module_ m).datas <> Set.empty)
 
   (* Custom section *)
-  let custom c =
+  let custom cos c =
     let Custom.{name = n; content; _} = c.it in
     name n;
+    Hashtbl.add cos n (pos s);
     put_string s content
 
-  let custom_section place c =
+  let custom_section cos place c =
     let here = Custom.(compare_place c.it.place place) <= +1 in
-    if here then section 0 custom c true;
+    if here then begin
+      section 0 (custom cos) c true;
+    end;
     here
 
   (* Module *)
@@ -889,34 +896,37 @@ struct
 
   let module_ m cs =
     let open Custom in
+    let cos = Hashtbl.create 0 in
+    let ros = Hashtbl.create 0 in
     u32 0x6d736100l;
     u32 version;
-    let cs = iterate (custom_section (Before Type)) cs in
+    let cs = iterate (custom_section cos (Before Type)) cs in
     type_section m.it.types;
-    let cs = iterate (custom_section (Before Import)) cs in
+    let cs = iterate (custom_section cos (Before Import)) cs in
     import_section m.it.imports;
-    let cs = iterate (custom_section (Before Func)) cs in
+    let cs = iterate (custom_section cos (Before Func)) cs in
     func_section m.it.funcs;
-    let cs = iterate (custom_section (Before Table)) cs in
+    let cs = iterate (custom_section cos (Before Table)) cs in
     table_section m.it.tables;
-    let cs = iterate (custom_section (Before Memory)) cs in
+    let cs = iterate (custom_section cos (Before Memory)) cs in
     memory_section m.it.memories;
-    let cs = iterate (custom_section (Before Global)) cs in
+    let cs = iterate (custom_section cos (Before Global)) cs in
     global_section m.it.globals;
-    let cs = iterate (custom_section (Before Export)) cs in
+    let cs = iterate (custom_section cos (Before Export)) cs in
     export_section m.it.exports;
-    let cs = iterate (custom_section (Before Start)) cs in
+    let cs = iterate (custom_section cos (Before Start)) cs in
     start_section m.it.start;
-    let cs = iterate (custom_section (Before Elem)) cs in
+    let cs = iterate (custom_section cos (Before Elem)) cs in
     elem_section m.it.elems;
-    let cs = iterate (custom_section (Before DataCount)) cs in
+    let cs = iterate (custom_section cos (Before DataCount)) cs in
     data_count_section m.it.datas m;
-    let cs = iterate (custom_section (Before Code)) cs in
-    code_section m.it.funcs;
-    let cs = iterate (custom_section (Before Data)) cs in
+    let cs = iterate (custom_section  cos (Before Code)) cs in
+    code_section ros m.it.funcs;
+    let cs = iterate (custom_section  cos (Before Data)) cs in
     data_section m.it.datas;
-    let cs = iterate (custom_section (After Data)) cs in
-    assert (cs = [])
+    let cs = iterate (custom_section  cos (After Data)) cs in
+    assert (cs = []);
+    (ros, cos)
 end
 
 
@@ -925,10 +935,17 @@ let encode_custom m (module S : Custom.Section) =
   let c = S.Handler.encode m S.it in
   Custom.{c.it with place = S.Handler.place S.it} @@ c.at
 
+let patch_custom m ros cos (module S : Custom.Section) =
+  let co = Hashtbl.find cos S.Handler.name in
+  S.Handler.patch m S.it { region_offsets = ros; custom_offset = co }
+
 let encode_with_custom (m, secs) =
   let module E = E (struct let stream = stream () end) in
   let cs = List.map (encode_custom m) secs in
-  E.module_ m cs; to_string E.s
+  let (ros, cos) = E.module_ m cs in
+  let ps = List.concat_map (patch_custom m ros cos) secs in
+  patch_append E.s ps;
+  to_string E.s
 
 let encode m =
   encode_with_custom (m, [])
