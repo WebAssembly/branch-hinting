@@ -635,7 +635,7 @@ let global off i g =
 (* Custom section *)
 
 let custom_section m place (module S : Custom.Section) =
-  if Custom.(compare_place (S.Handler.place S.it) place) <= +1 then
+  if Custom.(compare_place (S.Handler.place S.it) place) < +1 then
     match S.Handler.arrange m S.it with
     | CustomAnnot c -> Some c
     | _ -> None

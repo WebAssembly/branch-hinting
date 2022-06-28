@@ -876,8 +876,8 @@ struct
     name n;
     put_string s content
 
-  let custom_section place c =
-    let here = Custom.(compare_place c.it.place place) <= +1 in
+  let custom_section cos place c =
+    let here = Custom.(compare_place c.it.place place) < +1 in
     if here then section 0 custom c true;
     here
 
