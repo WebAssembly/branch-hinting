@@ -882,10 +882,8 @@ struct
     put_string s content
 
   let custom_section cos place c =
-    let here = Custom.(compare_place c.it.place place) <= +1 in
-    if here then begin
-      section 0 (custom cos) c true;
-    end;
+    let here = Custom.(compare_place c.it.place place) < +1 in
+    if here then section 0 (custom cos) c true;
     here
 
   (* Module *)
