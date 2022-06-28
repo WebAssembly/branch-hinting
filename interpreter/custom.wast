@@ -1,0 +1,17 @@
+(module
+  (type $t (func))
+  (@custom "my-section1" "contents-bytes1")
+  (@custom "my-section2" "more-contents-bytes0")
+  (@custom "my-section1" "contents-bytes2")
+  (@custom "my-section2" (before global) "more-contents-bytes1")
+  (@custom "my-section2" (after func) "more-contents-bytes2")
+  (@custom "my-section2" (after func) "more-contents-bytes3")
+  (@custom "my-section2" (before global) "more-contents-bytes4")
+  (func)
+  (@custom "my-section2" "more-contents-bytes5")
+
+  (global $g i32 (i32.const 0))
+  (@custom "my-section3")
+  (@custom "my-section4" "" "1" "" "2" "3" "")
+  (@custom "")
+)

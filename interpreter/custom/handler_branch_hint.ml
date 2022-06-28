@@ -45,10 +45,10 @@ let skip n s = if n < 0 then raise EOS else check n s; s.pos := !(s.pos) + n
 let read s = Char.code (s.bytes.[!(s.pos)])
 let get s = check 1 s; let b = read s in skip 1 s; b
 
-let position pos = Source.{file = "@metadata.code.branch_hint section"; line = -1; column = pos}
-let region left right = Source.{left = position left; right = position right}
+let position file pos = Source.{file; line = -1; column = pos}
+let region file left right = Source.{left = position file left; right = position file right}
 
-let decode_error pos msg = raise (Custom.Code (region pos pos, msg))
+let decode_error pos msg = raise (Custom.Code (region "@metadata.code.branch_hint section" pos pos, msg))
 let require b pos msg = if not b then decode_error pos msg
 
 let decode_byte s =
@@ -75,7 +75,7 @@ let decode_vec f s =
   in
   it n s
 
-let decode_hint foff s =
+let decode_hint file foff s =
   let off = decode_u32 s in
   let one = decode_u32 s in
   require (one = 1l) (pos s) "missing required 0x01 byte";
@@ -85,10 +85,10 @@ let decode_hint foff s =
   | 0x01 -> Likely
   | _ -> decode_error (pos s) "Unexpected hint value" in
   let abs_off = Int32.to_int (Int32.add off foff) in
-  hint @@ region abs_off abs_off
+  hint @@ region file abs_off abs_off
 
-let decode_func_hints foff =
-  decode_vec (decode_hint foff)
+let decode_func_hints file foff =
+  decode_vec (decode_hint file foff)
 
 let get_func m fidx =
   let nimp = List.length m.it.imports in
@@ -97,8 +97,10 @@ let get_func m fidx =
 
 let decode_func m s =
   let f = decode_u32 s in
-  let foff = Int32.of_int ((get_func m f).at.left.column + 1) in
-  let hs = decode_func_hints foff s in
+  let fat = (get_func m f).at in
+  let foff = Int32.of_int fat.left.column in
+  let file = fat.left.file in 
+  let hs = decode_func_hints file foff s in
   (f, hs)
 
 let decode_funcs m s =
