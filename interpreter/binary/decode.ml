@@ -920,7 +920,8 @@ let code _ s =
   {locals; body; ftype = Source.((-1l) @@ Source.no_region)}
 
 let code_section s =
-  section Custom.Code (vec (at (sized code))) [] s
+  let at_code size s = at (code size) s in
+  section Custom.Code (vec (sized at_code)) [] s
 
 
 (* Element section *)
