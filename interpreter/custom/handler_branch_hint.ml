@@ -153,7 +153,13 @@ let rec encode_u32 buf i =
   )
 
 let pos buf = Buffer.length buf
-let gap32 buf = let p = pos buf in encode_u32 buf 0l; encode_byte buf 0; p
+let gap32 buf = let p = pos buf in
+  encode_byte buf 0xfe;
+  encode_byte buf 0xfe;
+  encode_byte buf 0xfe;
+  encode_byte buf 0xfe;
+  encode_byte buf 0xfe;
+  p
   
 let patch_gap32 p n =
   assert (n <= 0x0fff_ffff); (* Strings cannot excess 2G anyway *)
