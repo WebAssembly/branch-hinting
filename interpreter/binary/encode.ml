@@ -935,7 +935,7 @@ let encode_custom m (module S : Custom.Section) =
 
 let patch_custom m ros cos (module S : Custom.Section) =
   let co = Hashtbl.find cos S.Handler.name in
-  S.Handler.patch m S.it { region_offsets = ros; custom_offset = co }
+  S.Handler.patch m S.it Custom.{ region_offsets = ros; custom_offset = co }
 
 let encode_with_custom (m, secs) =
   let module E = E (struct let stream = stream () end) in
