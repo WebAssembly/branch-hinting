@@ -222,14 +222,6 @@ and parse_annot m annot =
 (* Printing *)
 
 let arrange m fmt =
-  (* ISSUE: just delegating @custom does not work for code metadata:
-    we need the byte offsets of the final wasm file, but we are producing text.
-    There is no guarantee that when converting to binary the offsets will stay the same.
-    On the other hand, it is currently impossible to inject text annotations in the code section *)
-  (* Print as generic custom section *)
-  (*
-  Handler_custom.arrange m (encode m fmt)
-  *)
   let hint_to_string = function
     | Likely -> "\"\\01\""
     | Unlikely -> "\"\\00\"" in
