@@ -934,7 +934,10 @@ let encode_custom m (module S : Custom.Section) =
   Custom.{c.it with place = S.Handler.place S.it} @@ c.at
 
 let patch_custom m ros cos (module S : Custom.Section) =
-  let co = Hashtbl.find cos S.Handler.name in
+  let co = match Hashtbl.find_opt cos S.Handler.name with
+  | Some co -> co
+  | None -> 0
+  in
   S.Handler.patch m S.it Custom.{ region_offsets = ros; custom_offset = co }
 
 let encode_with_custom (m, secs) =
