@@ -433,17 +433,22 @@ let block_type = function
   | VarBlockType x -> [Node ("type " ^ var x, [])]
   | ValBlockType ts -> decls "result" (list_of_opt ts)
 
-let find_annots at annots =
-  let acc_annot annot acc =
-    if at.left.column = annot.at.left.column then
-      annot.it :: acc
-    else
-      acc
+let get_annots at annots =
+  let rec iter_annots at (acc, as_) =
+    match as_ with
+    | [] -> (acc, as_)
+    | a::rest ->
+        if a.at.right <= at.left then
+          iter_annots at (a.it::acc, rest)
+        else
+          (acc, as_)
   in
-  List.fold_right acc_annot annots []
+  let acc,as_ = iter_annots at ([], !annots) in
+  annots := as_;
+  acc
 
 let rec instr cs e =
-  let annots = find_annots e.at cs in
+  let annots = get_annots e.at cs in
   let head, inner =
     match e.it with
     | Unreachable -> "unreachable", []
@@ -518,8 +523,8 @@ let rec instr cs e =
 
 let const head c =
   match c.it with
-  | [e] -> List.hd (instr [] e)
-  | es -> Node (head, listf (instr []) c.it)
+  | [e] -> List.hd (instr (ref[]) e)
+  | es -> Node (head, listf (instr (ref[])) c.it)
 
 
 (* Functions *)
@@ -536,7 +541,7 @@ let func_with_index off cs i f =
   func_with_name (" $" ^ nat (off + i)) cs f
 
 let func f =
-  func_with_name "" [] f
+  func_with_name "" (ref []) f
 
 let start x = Node ("start " ^ var x, [])
 
@@ -629,7 +634,7 @@ let export ex =
 
 let global off i g =
   let {gtype; ginit} = g.it in
-  Node ("global $" ^ nat (off + i), global_type gtype :: listf (instr []) ginit.it)
+  Node ("global $" ^ nat (off + i), global_type gtype :: listf (instr (ref [])) ginit.it)
 
 
 (* Custom section *)
@@ -670,7 +675,7 @@ let module_with_var_opt x_opt (m, cs) =
   let mx = ref 0 in
   let gx = ref 0 in
   let imports = list (import fx tx mx gx) m.it.imports in
-  let annots = collect_all_annots m cs in
+  let annots = ref (collect_all_annots m cs) in
   let open Custom in
   Node ("module" ^ var_opt x_opt,
     let secs, cs = iterate (custom_section m (Before Type)) cs in secs @
