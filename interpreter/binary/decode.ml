@@ -1051,7 +1051,7 @@ let data_count_section s =
 let custom size s =
   let start = pos s in
   let id = name s in
-  let bs = get_string (size - (pos s - start)) s in
+  let bs = at (get_string (size - (pos s - start))) s in
   Some (id, bs)
 
 let custom_section s =
