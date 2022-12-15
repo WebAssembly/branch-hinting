@@ -3,6 +3,8 @@
 open Custom
 open Annot
 open Source
+open Ast
+open Script
 
 module IdxMap = Map.Make(Int32)
 
@@ -89,7 +91,7 @@ let decode_hint foff s =
 let decode_func_hints foff =
   decode_vec (decode_hint foff)
 
-let get_func (m: Ast.module_) fidx =
+let get_func m fidx =
   let nimp = List.length m.it.imports in
   let fn = (Int32.to_int fidx) - nimp in
   List.nth m.it.funcs fn
@@ -168,8 +170,6 @@ let encode _m sec =
 
 (* Parsing *)
 
-open Ast
-
 let parse_error at msg = raise (Custom.Syntax (at, msg))
 
 let is_contained r1 r2 = r1.left >= r2.left && r1.right <= r2.right
@@ -218,13 +218,74 @@ and parse_annot m annot =
 
 (* Printing *)
 
+exception Unreachable
+
+let rec find_inst_pair'' (i1, i2) at =
+  if is_left at i1.at then
+    Some (i1, i2)
+  else match (i1.it, i2.it) with
+  | (Block (bt1, es1), Block (bt2, es2)) -> find_inst_pair' (es1, es2) at
+  | (Loop (bt1, es1), Loop (bt2, es2)) -> find_inst_pair' (es1, es2) at
+  | (If (bt1, es1, es1'), If (bt2, es2, es2')) ->
+      (match find_inst_pair' (es1, es2) at with
+      | Some (i1, i2) -> Some (i1, i2)
+      | None -> find_inst_pair' (es1', es2') at)
+  | _ -> None
+
+and find_inst_pair' (es1, es2) at = match (es1, es2) with
+| ([], []) -> None
+| (e1::es1, e2::es2) ->
+    (match find_inst_pair'' (e1, e2) at with
+    | None -> find_inst_pair' (es1,es2) at
+    | Some (e1, e2) -> Some (e1, e2))
+| _ -> raise Unreachable
+and find_inst_pair (es1, es2) at = match find_inst_pair' (es1, es2) at with
+| Some (e1, e2) -> (e1, e2)
+| None -> raise Unreachable
+
+let width = !Flags.width
+
 let arrange m fmt =
   (* ISSUE: just delegating @custom does not work for code metadata:
     we need the byte offsets of the final wasm file, but we are producing text.
     There is no guarantee that when converting to binary the offsets will stay the same.
     On the other hand, it is currently impossible to inject text annotations in the code section *)
-  (* Print as generic custom section *)
-  Handler_custom.arrange m (encode m fmt)
+  let s = Sexpr.to_string width (Arrange.module_ m) in
+  let def = Parse.string_to_module s in
+  let m2 = match def.it with
+  | Textual (m, cs) -> m
+  | _ -> raise Unreachable in
+
+  let buf = Buffer.create (String.length s) in
+
+  let hint_to_string = function
+    | Likely -> "\"\\01\""
+    | Unlikely -> "\"\\00\"" in
+
+  let last = ref 0 in
+  let copy_until idx () =
+    let slice = String.sub s !last (idx - !last) in
+    last := idx;
+    Buffer.add_string buf slice in
+
+  let arrange_one (f1,f2) h =
+    let s = Sexpr.to_string width (Sexpr.Node ("@metadata.code.branch_hint ", [Sexpr.Atom (hint_to_string h.it)])) in
+    let (i1, i2) = find_inst_pair (f1.it.body, f2.it.body) h.at in
+    let idx = i2.at.left.column + (i2.at.left.line*(width + 1)) in
+    copy_until idx ();
+    Buffer.add_string buf s in
+  let arrange_func (fidx, hs) =
+    let fn = (Int32.to_int fidx) - (List.length m.it.imports) in
+    let f1 = List.nth m.it.funcs fn in
+    let f2 = List.nth m2.it.funcs fn in
+    List.iter (arrange_one (f1, f2)) hs in
+  let arrange_funcs fhs () =
+    List.iter arrange_func fhs in
+  arrange_funcs (List.of_seq (IdxMap.to_seq fmt.it.func_hints)) ();
+  copy_until (String.length s) ();
+
+  let content = Buffer.contents buf in
+  content
 
 
 (* Checking *)

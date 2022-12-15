@@ -54,7 +54,7 @@ sig
   val decode : Ast.module_ -> custom -> format (* raise Code *)
   val encode : Ast.module_ -> format -> custom
   val parse : Ast.module_ -> Annot.annot list -> format list (* raise Syntax *)
-  val arrange : Ast.module_ -> format -> Sexpr.sexpr
+  val arrange : Ast.module_ -> format -> string
   val check : Ast.module_ -> format -> unit (* raise Invalid *)
 end
 
