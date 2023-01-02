@@ -1098,16 +1098,16 @@ let module_ s =
   customs
 
 
-let decode_custom m custom =
+let decode_custom m bs custom =
   let open Source in
   let Custom.{name; content; place} = custom.it in
   match Custom.handler name, Custom.handler (Utf8.decode "custom") with
   | Some (module Handler), _ ->
-    let fmt = Handler.decode m custom in
+    let fmt = Handler.decode m bs custom in
     let module S = struct module Handler = Handler let it = fmt end in
     [(module S : Custom.Section)]
   | None, Some (module Handler') ->
-    let fmt = Handler'.decode m custom in
+    let fmt = Handler'.decode m bs custom in
     let module S = struct module Handler = Handler' let it = fmt end in
     [(module S : Custom.Section)]
   | None, None ->
@@ -1122,6 +1122,6 @@ let decode_with_custom name bs =
   let open Source in
   let m', cs = m_cs.it in
   let m = m' @@ m_cs.at in
-  m, List.flatten (List.map (decode_custom m) cs)
+  m, List.flatten (List.map (decode_custom m bs) cs)
 
 let decode name bs = fst (decode_with_custom name bs)

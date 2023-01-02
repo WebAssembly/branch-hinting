@@ -107,7 +107,7 @@ let decode_funcs m s =
   let fs = decode_vec (decode_func m) s in
   IdxMap.add_seq (List.to_seq fs) IdxMap.empty
 
-let decode m custom =
+let decode m _ custom =
   let s = stream custom.it.content in
   try
     { func_hints = decode_funcs m s } @@ custom.at
@@ -161,8 +161,8 @@ let encode_func buf t =
 let encode_funcs buf fhs =
   encode_vec buf encode_func (List.of_seq (IdxMap.to_seq fhs))
 
-let encode _m sec =
-  let {func_hints} = sec.it in
+let encode m _bs sec =
+let {func_hints} = sec.it in
   let buf = Buffer.create 200 in
   encode_funcs buf func_hints;
   let content = Buffer.contents buf in
@@ -196,7 +196,7 @@ let find_func_idx m annot =
   | Some i -> Int32.of_int (i + List.length m.it.imports)
   | None -> parse_error annot.at "Branch hint annotation is not in a function"
 
-let rec parse m annots =
+let rec parse m _bs annots =
   let ms = List.map (parse_annot m) annots in
   match ms with
   | [] -> []
