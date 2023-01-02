@@ -215,7 +215,7 @@ let encode_locals buf name_map_map =
     encode_subsec_end buf subsec
   end
 
-let encode _m sec =
+let encode _m _bs sec =
   let {module_; funcs; locals} = sec.it in
   let buf = Buffer.create 200 in
   encode_module buf module_;
@@ -328,7 +328,7 @@ and parse_end = function
 
 let arrange m fmt =
   (* Print as generic custom section *)
-  Handler_custom.arrange m (encode m fmt)
+  Handler_custom.arrange m ( encode m "" fmt)
 
 
 (* Checking *)

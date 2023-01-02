@@ -870,65 +870,89 @@ struct
   let data_count_section datas m =
     section 12 len (List.length datas) Free.((module_ m).datas <> Set.empty)
 
-  (* Custom section *)
-  let custom c =
-    let Custom.{name = n; content; _} = c.it in
-    name n;
-    put_string s content
-
-  let custom_section cos place c =
-    let here = Custom.(compare_place c.it.place place) < +1 in
-    if here then section 0 custom c true;
-    here
-
   (* Module *)
-  let rec iterate f xs =
-    match xs with
-    | [] -> []
-    | x::xs' -> if f x then iterate f xs' else xs
-
-  let module_ m cs =
+  let module_ m =
     let open Custom in
+    let cos = Hashtbl.create 0 in
+    let ros = Hashtbl.create 0 in
+    let offs = [] in
     u32 0x6d736100l;
     u32 version;
-    let cs = iterate (custom_section (Before Type)) cs in
+    let offs = offs @ [((Before Type), pos s)] in
     type_section m.it.types;
-    let cs = iterate (custom_section (Before Import)) cs in
+    let offs = offs @ [((Before Import), pos s)] in
     import_section m.it.imports;
-    let cs = iterate (custom_section (Before Func)) cs in
+    let offs = offs @ [((Before Func), pos s)] in
     func_section m.it.funcs;
-    let cs = iterate (custom_section (Before Table)) cs in
+    let offs = offs @ [((Before Table), pos s)] in
     table_section m.it.tables;
-    let cs = iterate (custom_section (Before Memory)) cs in
+    let offs = offs @ [((Before Memory), pos s)] in
     memory_section m.it.memories;
-    let cs = iterate (custom_section (Before Global)) cs in
+    let offs = offs @ [((Before Global), pos s)] in
     global_section m.it.globals;
-    let cs = iterate (custom_section (Before Export)) cs in
+    let offs = offs @ [((Before Export), pos s)] in
     export_section m.it.exports;
-    let cs = iterate (custom_section (Before Start)) cs in
+    let offs = offs @ [((Before Start), pos s)] in
     start_section m.it.start;
-    let cs = iterate (custom_section (Before Elem)) cs in
+    let offs = offs @ [((Before Elem), pos s)] in
     elem_section m.it.elems;
-    let cs = iterate (custom_section (Before DataCount)) cs in
+    let offs = offs @ [((Before DataCount), pos s)] in
     data_count_section m.it.datas m;
-    let cs = iterate (custom_section (Before Code)) cs in
-    code_section m.it.funcs;
-    let cs = iterate (custom_section (Before Data)) cs in
+    let offs = offs @ [((Before Code), pos s)] in
+    code_section ros m.it.funcs;
+    let offs = offs @ [((Before Data), pos s)] in
     data_section m.it.datas;
-    let cs = iterate (custom_section (After Data)) cs in
-    assert (cs = [])
+    let offs = offs @ [((After Data), pos s)] in
+    offs
 end
 
+let encode_u32_wide buf n =
+  let lsb i = Char.chr (i land 0xff) in
+  Buffer.add_char buf (lsb (n lor 0x80));
+  Buffer.add_char buf (lsb ((n lsr 7) lor 0x80));
+  Buffer.add_char buf (lsb ((n lsr 14) lor 0x80));
+  Buffer.add_char buf (lsb ((n lsr 21) lor 0x80));
+  Buffer.add_char buf (lsb (n lsr 28))
 
-let encode_custom m (module S : Custom.Section) =
+let encode_custom_content m bs (module S : Custom.Section) =
   let open Source in
-  let c = S.Handler.encode m S.it in
+  let c = S.Handler.encode m bs S.it in
   Custom.{c.it with place = S.Handler.place S.it} @@ c.at
+
+let encode_custom buf c =
+  let open Custom in
+  let name = Utf8.encode c.name in
+  let len = (String.length name) + 5 + (String.length c.content) in
+  Buffer.add_char buf (Char.chr 0);
+  encode_u32_wide buf len;
+  encode_u32_wide buf (String.length name);
+  Buffer.add_string buf name;
+  Buffer.add_string buf c.content
+
+let insert_custom buf place c =
+  let open Source in
+  let here = Custom.(compare_place c.it.place place) < +1 in
+  if here then encode_custom buf c.it;
+  here
+
+let rec iterate f xs =
+  match xs with
+  | [] -> []
+  | x::xs' -> if f x then iterate f xs' else xs
+
+let insert_customs buf bs (cs, last_off) (place, off) =
+  Buffer.add_substring buf bs last_off (off-last_off);
+  let cs = iterate (insert_custom buf place) cs in
+  (cs, off)
 
 let encode_with_custom (m, secs) =
   let module E = E (struct let stream = stream () end) in
-  let cs = List.map (encode_custom m) secs in
-  E.module_ m cs; to_string E.s
+  let offs = E.module_ m in
+  let bs = to_string E.s in
+  let cs = List.map (encode_custom_content m bs) secs in
+  let buf = Buffer.create 8192 in
+  List.fold_left (insert_customs buf bs) (cs, 0) offs;
+  Buffer.contents buf
 
 let encode m =
   encode_with_custom (m, [])

@@ -56,7 +56,7 @@ sig
   val name : Ast.name
   val place : format -> place
   val decode : Ast.module_ -> string -> custom -> format (* raise Code *)
-  val encode : Ast.module_ -> string -> format -> string
+  val encode : Ast.module_ -> string -> format -> custom
   val parse : Ast.module_ -> string -> Annot.annot list -> format list (* raise Syntax *)
   val arrange : Ast.module_ -> format -> annot_kind
   val check : Ast.module_ -> format -> unit (* raise Invalid *)

@@ -35,7 +35,7 @@ let decode m bs custom =
   ignore (decode_content m bs custom);
   custom
 
-let encode _m custom = custom
+let encode _m _bs custom = custom
 
 
 (* Parsing *)
