@@ -162,7 +162,7 @@ let encode_funcs buf fhs =
   encode_vec buf encode_func (List.of_seq (IdxMap.to_seq fhs))
 
 let encode m bs sec =
-  let {func_hints; gaps} = sec.it in
+  let {func_hints} = sec.it in
   let m2 = Decode.decode bs in
   let buf = Buffer.create 200 in
   encode_funcs buf func_hints;
