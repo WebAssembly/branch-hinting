@@ -873,8 +873,6 @@ struct
   (* Module *)
   let module_ m =
     let open Custom in
-    let cos = Hashtbl.create 0 in
-    let ros = Hashtbl.create 0 in
     let offs = [] in
     u32 0x6d736100l;
     u32 version;
@@ -899,7 +897,7 @@ struct
     let offs = offs @ [((Before DataCount), pos s)] in
     data_count_section m.it.datas m;
     let offs = offs @ [((Before Code), pos s)] in
-    code_section ros m.it.funcs;
+    code_section m.it.funcs;
     let offs = offs @ [((Before Data), pos s)] in
     data_section m.it.datas;
     let offs = offs @ [((After Data), pos s)] in
