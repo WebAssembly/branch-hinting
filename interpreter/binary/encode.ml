@@ -930,6 +930,7 @@ let encode_custom buf c =
 let insert_custom buf place c =
   let open Source in
   let here = Custom.(compare_place c.it.place place) < +1 in
+  Format.printf "place '%s' c.place '%s' here=%b\n" (Custom.place_name place) (Custom.place_name Custom.(c.it.place)) here;
   if here then encode_custom buf c.it;
   here
 

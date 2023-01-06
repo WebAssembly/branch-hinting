@@ -11,9 +11,9 @@ type section_kind =
   | Export
   | Start
   | Elem
+  | DataCount
   | Code
   | Data
-  | DataCount
 
 type place =
   | Before of section_kind
@@ -27,6 +27,24 @@ and custom' =
   place : place;
 }
 
+let sec_name sec = match sec with
+  | Custom -> "Custom"
+  | Type -> "Type"
+  | Import -> "Import"
+  | Func -> "Func"
+  | Table -> "Table"
+  | Memory -> "Memory"
+  | Global -> "Global"
+  | Export -> "Export"
+  | Start -> "Start"
+  | Elem -> "Elem"
+  | Code -> "Code"
+  | Data -> "Data"
+  | DataCount -> "DataCount"
+
+let place_name p = match p with
+  | Before sec -> "Before " ^ (sec_name sec)
+  | After sec -> "After " ^ (sec_name sec)
 
 let first = Type
 let last = Data
@@ -58,7 +76,7 @@ sig
   val decode : Ast.module_ -> string -> custom -> format (* raise Code *)
   val encode : Ast.module_ -> string -> format -> custom
   val parse : Ast.module_ -> string -> Annot.annot list -> format list (* raise Syntax *)
-  val arrange : Ast.module_ -> format -> annot_kind
+  val arrange : Ast.module_ -> Sexpr.sexpr -> format -> Sexpr.sexpr
   val check : Ast.module_ -> format -> unit (* raise Invalid *)
 end
 

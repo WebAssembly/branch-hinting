@@ -128,11 +128,18 @@ and parse_end = function
 
 open Sexpr
 
-let rec arrange _m custom =
+let insert_custom ns n =
+  match ns with
+  | Atom _ -> assert false
+  | Node (name, secs) ->
+      Node (name, secs @ [n])
+
+let rec arrange _m ns custom =
   let {name; content; place} = custom.it in
-  CustomAnnot (Node ("@custom " ^ Arrange.name name,
+  let node = Node ("@custom " ^ Arrange.name name,
     arrange_place place :: Arrange.break_bytes content
-  ))
+  ) in
+  insert_custom ns node
 
 and arrange_place = function
   | Before sec -> Node ("before", [Atom (arrange_sec sec)])

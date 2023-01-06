@@ -326,9 +326,9 @@ and parse_end = function
 
 (* Printing *)
 
-let arrange m fmt =
+let arrange m bs fmt =
   (* Print as generic custom section *)
-  Handler_custom.arrange m ( encode m "" fmt)
+  Handler_custom.arrange m bs ( encode m "" fmt)
 
 
 (* Checking *)

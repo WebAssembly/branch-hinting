@@ -8,7 +8,8 @@ open Ast
 module IdxMap = Map.Make(Int32)
 
 type kind = Likely | Unlikely
-type hint = kind Source.phrase
+type hint = hint' Source.phrase
+and hint' = kind * int
 type hints = hint list
 type func_hints = hints IdxMap.t
 
@@ -18,12 +19,38 @@ and format' =
   func_hints: func_hints;
 }
 
-
 let empty = {func_hints = IdxMap.empty }
 
 let name = Utf8.decode "metadata.code.branch_hint"
 
 let place _fmt = Before Code
+
+
+let is_contained r1 r2 = r1.left >= r2.left && r1.right <= r2.right
+let is_left r1 r2 = r1.right.line <= r2.left.line && r1.right.column <= r2.left.column
+
+let get_func m fidx =
+  let nimp = List.length m.it.imports in
+  let fn = (Int32.to_int fidx) - nimp in
+  List.nth m.it.funcs fn
+
+let rec flatten_instr_locs is =
+  match is with
+  | [] -> []
+  | i::rest ->
+      let group = match i.it with
+      | Block (_, inner) -> [i] @ (flatten_instr_locs inner)
+      | Loop (_, inner) -> [i] @ (flatten_instr_locs inner)
+      | If (_, inner1, inner2) -> [i] @ (flatten_instr_locs inner1) @ (flatten_instr_locs inner2)
+      | _ -> [i] in
+      group @ (flatten_instr_locs rest)
+
+let get_inst_idx locs at =
+  let rec impl locs idx =
+    match locs with
+    | [] -> assert false
+    | l::rest -> if (is_left at l.at) then idx else impl rest idx+1 in
+  impl locs 0
 
 
 (* Decoding *)
@@ -75,7 +102,7 @@ let decode_vec f s =
   in
   it n s
 
-let decode_hint file foff s =
+let decode_hint locs foff s =
   let off = decode_u32 s in
   let one = decode_u32 s in
   require (one = 1l) (pos s) "missing required 0x01 byte";
@@ -85,23 +112,20 @@ let decode_hint file foff s =
   | 0x01 -> Likely
   | _ -> decode_error (pos s) "Unexpected hint value" in
   let abs_off = Int32.to_int (Int32.add off foff) in
-  hint @@ region file abs_off abs_off
+  let at = region "" abs_off abs_off in
+  (hint, get_inst_idx locs at) @@ at
 
-let decode_func_hints file foff =
-  decode_vec (decode_hint file foff)
+let decode_func_hints locs foff =
+  decode_vec (decode_hint locs foff)
 
-let get_func m fidx =
-  let nimp = List.length m.it.imports in
-  let fn = (Int32.to_int fidx) - nimp in
-  List.nth m.it.funcs fn
 
 let decode_func m s =
-  let f = decode_u32 s in
-  let fat = (get_func m f).at in
-  let foff = Int32.of_int fat.left.column in
-  let file = fat.left.file in 
-  let hs = decode_func_hints file foff s in
-  (f, hs)
+  let fidx = decode_u32 s in
+  let f = get_func m fidx in
+  let foff = Int32.of_int f.at.left.column in
+  let locs = flatten_instr_locs f.it.body in
+  let hs = decode_func_hints locs foff s in
+  (fidx, hs)
 
 let decode_funcs m s =
   let fs = decode_vec (decode_func m) s in
@@ -139,33 +163,36 @@ let encode_vec buf f v =
   | e::es -> f buf e; it es in
   it v
 
-let encode_hint buf h =
-  (* ISSUE: Here we are supposed to encode the byte offset of the hinted instruction
-   from the beginning of the function, but we don't have this information yet,
-   and we have no way of getting it with the current design *)
-  encode_size buf h.at.left.column;
+let encode_hint locs foff buf h =
+  let kind, idx = h.it in
+  let i = List.nth locs idx in
+  let off = i.at.left.column - foff in
+  encode_size buf off;
   encode_u32 buf 1l;
-  let b = match h.it with
+  let b = match kind with
   | Unlikely -> 0l
   | Likely -> 1l in
   encode_u32 buf b
 
-let encode_func_hints buf =
-  encode_vec buf encode_hint
+let encode_func_hints buf locs foff =
+  encode_vec buf (encode_hint locs foff)
 
-let encode_func buf t =
-  let f, hs = t in
-  encode_u32 buf f;
-  encode_func_hints buf hs
+let encode_func m buf t =
+  let fidx, hs = t in
+  encode_u32 buf fidx;
+  let f = get_func m fidx in
+  let foff = f.at.left.column in
+  let locs = flatten_instr_locs f.it.body in
+  encode_func_hints buf locs foff hs
 
-let encode_funcs buf fhs =
-  encode_vec buf encode_func (List.of_seq (IdxMap.to_seq fhs))
+let encode_funcs buf m fhs =
+  encode_vec buf (encode_func m) (List.of_seq (IdxMap.to_seq fhs))
 
 let encode m bs sec =
   let {func_hints} = sec.it in
-  let m2 = Decode.decode bs in
+  let m2 = Decode.decode "" bs in
   let buf = Buffer.create 200 in
-  encode_funcs buf func_hints;
+  encode_funcs buf m2 func_hints;
   let content = Buffer.contents buf in
   {name = Utf8.decode "metadata.code.branch_hint"; content; place = Before Code} @@ sec.at
 
@@ -175,9 +202,6 @@ let encode m bs sec =
 open Ast
 
 let parse_error at msg = raise (Custom.Syntax (at, msg))
-
-let is_contained r1 r2 = r1.left >= r2.left && r1.right <= r2.right
-let is_left r1 r2 = r1.right.line <= r2.left.line && r1.right.column <= r2.left.column
 
 let merge_func_hints = IdxMap.merge (fun key x y ->
   match x, y with
@@ -212,28 +236,52 @@ and parse_annot m annot =
   let fold_payload bs a = bs ^ (payload a) in
   let p = List.fold_left fold_payload "" items in
   let at_last = (List.hd (List.rev items)).at in
-  let f = find_func_idx m annot in
+  let fidx = find_func_idx m annot in
+  let f = get_func m fidx in
+  let locs = flatten_instr_locs f.it.body in
   let hint = match p with
   | "\x00" -> Unlikely
   | "\x01" -> Likely
   | _ -> parse_error annot.at ("Branch hint has an invalid value" ^ p) in
-  let e = { func_hints = IdxMap.add f [hint @@ annot.at] IdxMap.empty } in
+  let hidx = get_inst_idx locs annot.at in
+  let e = { func_hints = IdxMap.add fidx [(hint, hidx) @@ annot.at] IdxMap.empty } in
   e @@ Source.{left = annot.at.left; right = at_last.right}
 
-(* Printing *)
+(* Arranging *)
 
-let arrange m fmt =
-  let hint_to_string = function
-    | Likely -> "\"\\01\""
-    | Unlikely -> "\"\\00\"" in
+let hint_to_string = function
+  | Likely -> "\"\\01\""
+  | Unlikely -> "\"\\00\""
 
-  let arrange_one h =
-    (Sexpr.Node ("@metadata.code.branch_hint ", [Sexpr.Atom (hint_to_string h.it)])) @@ h.at in 
-  let arrange_func (f, hs) =
-    List.map arrange_one hs in
-  let arrange_funcs (fhs) =
-    List.concat (List.map arrange_func fhs) in
-  CodeAnnot (arrange_funcs (List.of_seq (IdxMap.to_seq fmt.it.func_hints)))
+let collect_one f hat =
+  let (h, hidx) = hat.it in
+  (f, hidx, Sexpr.Node ("@metadata.code.branch_hint ", [Sexpr.Atom (hint_to_string h)]))
+
+let collect_func (f, hs) =
+  List.map (collect_one f) hs
+
+let collect_funcs (fhs) =
+  List.concat (List.map collect_func fhs)
+
+let apply_func nodes annots fidx =
+  let curi = ref 0 in
+  nodes
+
+let apply mnode annots curf =
+  match mnode with
+  | Sexpr.Atom a -> Sexpr.Atom a
+  | Sexpr.Node (head, rest) ->
+    if String.starts_with head "func " then
+      let ret = apply_func rest annots !curf in
+      curf := !curf + 1;
+      Sexpr.Node (head, ret)
+    else
+      Sexpr.Node (head, rest)
+
+let arrange m mnode fmt =
+  let annots = ref (collect_funcs (List.of_seq (IdxMap.to_seq fmt.it.func_hints))) in
+  let curf = ref 0 in
+  apply mnode annots curf
 
 
 
@@ -261,19 +309,23 @@ and find_inst es at = match es with
     | None -> find_inst es at
     | Some i -> Some i
 
-let check_one m f h =
-  let fn = (Int32.to_int f) - (List.length m.imports) in
-  let es = (List.nth m.funcs fn).it.body in
-  match find_inst es h.at with
+let check_one locs h =
+  let kind, idx = h.it in
+  match List.nth_opt locs idx with
   | None -> check_error h.at "@metadata.code.branch_hint annotation: invalid offset"
   | Some i ->
-      (match i with
+      (match i.it with
       | If _ -> ()
       | BrIf _ -> ()
       | _ -> check_error h.at "@metadata.code.branch_hint annotation: invalid target")
 
+let check_fun m fidx hs =
+  let f = get_func m fidx in
+  let locs = flatten_instr_locs f.it.body in
+  List.iter (check_one locs) hs
+
 
 let check (m : module_) (fmt : format) =
-  IdxMap.iter (fun f hs -> List.iter (fun h -> check_one m.it f h) hs) fmt.it.func_hints;
+  IdxMap.iter (check_fun m) fmt.it.func_hints;
   ()
 
