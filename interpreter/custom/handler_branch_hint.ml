@@ -243,9 +243,10 @@ and parse_annot m annot =
   | "\x00" -> Unlikely
   | "\x01" -> Likely
   | _ -> parse_error annot.at ("Branch hint has an invalid value" ^ p) in
-  let hidx = get_inst_idx locs annot.at in
-  let e = { func_hints = IdxMap.add fidx [(hint, hidx) @@ annot.at] IdxMap.empty } in
-  e @@ Source.{left = annot.at.left; right = at_last.right}
+  let at = Source.{left = annot.at.left; right = at_last.right} in
+  let hidx = get_inst_idx locs at in
+  let e = { func_hints = IdxMap.add fidx [(hint, hidx) @@ at] IdxMap.empty } in
+  e @@ at
 
 (* Arranging *)
 
@@ -255,7 +256,7 @@ let hint_to_string = function
 
 let collect_one f hat =
   let (h, hidx) = hat.it in
-  (f, hidx, Sexpr.Node ("@metadata.code.branch_hint ", [Sexpr.Atom (hint_to_string h)]))
+  (Int32.to_int f, hidx, Sexpr.Node ("@metadata.code.branch_hint ", [Sexpr.Atom (hint_to_string h)]))
 
 let collect_func (f, hs) =
   List.map (collect_one f) hs
@@ -263,15 +264,69 @@ let collect_func (f, hs) =
 let collect_funcs (fhs) =
   List.concat (List.map collect_func fhs)
 
+let rec get_instrs n1 n2 =
+  match n2 with
+  | [] -> (n1, [])
+  | (Sexpr.Atom s)::rest -> (n1 @ [Sexpr.Atom s], rest)
+  | (Sexpr.Node (h, els))::rest ->
+      if ( String.starts_with ~prefix:"type" h
+        || String.starts_with ~prefix:"local" h
+        || String.starts_with ~prefix:"result" h ) then
+        get_instrs (n1 @ [Sexpr.Node(h, els)]) rest
+      else
+        (n1, n2)
+
+
+let get_annot annots fidx idx h =
+  if ( String.starts_with ~prefix:"br_if" h
+    || String.starts_with ~prefix:"if" h ) then
+    match !annots with
+    | [] -> []
+    | (a_fidx, a_hidx, a_node)::rest ->
+        if a_fidx = fidx && a_hidx = idx then
+          annots := rest;
+          [a_node]
+        else
+          []
+
+
+let rec apply_instrs annots fidx curi is =
+  match is with
+  | [] -> []
+  | i::rest ->
+      let idx = !curi in
+      curi := idx+1;
+      let newn = match i with
+      | Sexpr.Node (h, ns) ->
+        let annot = get_annot annots fidx idx h in
+        if ( String.starts_with ~prefix:"block" h
+          || String.starts_with ~prefix:"loop" h ) then
+          let pre, inner = get_instrs [] ns in
+          annot @ [Sexpr.Node(h, pre @ apply_instrs annots fidx curi inner)]
+        else if String.starts_with ~prefix:"if" h then
+          match ns with
+          | [Sexpr.Node(hif, nif); Sexpr.Node(helse, nelse)] ->
+              let newif = apply_instrs annots fidx curi nif in
+              let newelse = apply_instrs annots fidx curi nelse in
+              annot @ [Sexpr.Node(h, [Sexpr.Node(hif, newif); Sexpr.Node(helse, newelse)])]
+          | _ -> assert false
+        else
+          annot @ [Sexpr.Node(h, ns)]
+      | Sexpr.Atom s -> [Sexpr.Atom s] in
+      newn @ apply_instrs annots fidx curi rest
+
+
 let apply_func nodes annots fidx =
   let curi = ref 0 in
-  nodes
+  let pre, instrs = get_instrs [] nodes in
+  let new_instrs = apply_instrs annots fidx curi instrs in
+  pre @ new_instrs
 
 let apply mnode annots curf =
   match mnode with
   | Sexpr.Atom a -> Sexpr.Atom a
   | Sexpr.Node (head, rest) ->
-    if String.starts_with head "func " then
+    if String.starts_with ~prefix:"func" head then
       let ret = apply_func rest annots !curf in
       curf := !curf + 1;
       Sexpr.Node (head, ret)
@@ -285,29 +340,9 @@ let arrange m mnode fmt =
 
 
 
-
 (* Checking *)
 
 let check_error at msg = raise (Custom.Invalid (at, msg))
-
-let rec find_inst' i at =
-  if is_left at i.at then
-    Some i.it
-  else match i.it with
-  | Block (bt, es) -> find_inst es at
-  | Loop (bt, es) -> find_inst es at
-  | If (bt, es, es') ->
-      (match find_inst es at with
-      | Some i -> Some i
-      | None -> find_inst es' at)
-  | _ -> None
-
-and find_inst es at = match es with
-| [] -> None
-| e::es ->
-    match find_inst' e at with
-    | None -> find_inst es at
-    | Some i -> Some i
 
 let check_one locs h =
   let kind, idx = h.it in
