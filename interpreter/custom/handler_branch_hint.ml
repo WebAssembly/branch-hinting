@@ -322,21 +322,34 @@ let apply_func nodes annots fidx =
   let new_instrs = apply_instrs annots fidx curi instrs in
   pre @ new_instrs
 
-let apply mnode annots curf =
-  match mnode with
+let apply_secs annots curf node =
+  match node with
   | Sexpr.Atom a -> Sexpr.Atom a
   | Sexpr.Node (head, rest) ->
     if String.starts_with ~prefix:"func" head then
+      begin
+      Printf.printf "curf: %d\n" !curf;
       let ret = apply_func rest annots !curf in
       curf := !curf + 1;
       Sexpr.Node (head, ret)
+      end
     else
+      begin
+      Printf.printf "head: %s\n" head;
       Sexpr.Node (head, rest)
+      end
+
+let apply mnode annots curf =
+  match mnode with
+  | Sexpr.Atom a -> Sexpr.Atom a
+  | Sexpr.Node (h, secs) -> Sexpr.Node(h, List.map (apply_secs annots curf) secs)
 
 let arrange m mnode fmt =
   let annots = ref (collect_funcs (List.of_seq (IdxMap.to_seq fmt.it.func_hints))) in
   let curf = ref 0 in
-  apply mnode annots curf
+  let ret = apply mnode annots curf in
+(*  assert (List.length !annots == 0);*)
+  ret
 
 
 
