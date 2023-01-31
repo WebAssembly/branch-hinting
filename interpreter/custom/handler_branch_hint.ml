@@ -27,7 +27,9 @@ let place _fmt = Before Code
 
 
 let is_contained r1 r2 = r1.left >= r2.left && r1.right <= r2.right
-let is_left r1 r2 = r1.right.line <= r2.left.line && r1.right.column <= r2.left.column
+let is_left r1 r2 = (r1.right.line < r2.left.line) ||
+                    (r1.right.line == r2.left.line &&
+                     r1.right.column <= r2.left.column)
 
 let get_func m fidx =
   let nimp = List.length m.it.imports in
@@ -49,7 +51,9 @@ let get_inst_idx locs at =
   let rec impl locs idx =
     match locs with
     | [] -> assert false
-    | l::rest -> if (is_left at l.at) then idx else impl rest idx+1 in
+    | l::rest ->
+        Printf.printf "at %s | l %s | isleft %b\n" (Source.string_of_region at) (Source.string_of_region l.at) (is_left at l.at);
+        if (is_left at l.at) then idx else impl rest idx+1 in
   impl locs 0
 
 
@@ -256,7 +260,7 @@ let hint_to_string = function
 
 let collect_one f hat =
   let (h, hidx) = hat.it in
-  (Int32.to_int f, hidx, Sexpr.Node ("@metadata.code.branch_hint ", [Sexpr.Atom (hint_to_string h)]))
+  (Int32.to_int f, hidx, Sexpr.Node ("@metadata.code.branch_hint ", [Sexpr.Atom (hint_to_string h); Sexpr.Atom (string_of_int (Int32.to_int f))]))
 
 let collect_func (f, hs) =
   List.map (collect_one f) hs
@@ -280,14 +284,21 @@ let rec get_instrs n1 n2 =
 let get_annot annots fidx idx h =
   if ( String.starts_with ~prefix:"br_if" h
     || String.starts_with ~prefix:"if" h ) then
+    begin
     match !annots with
     | [] -> []
     | (a_fidx, a_hidx, a_node)::rest ->
         if a_fidx = fidx && a_hidx = idx then
+          begin
           annots := rest;
+          Printf.printf "%d %d | %d %d\n" fidx a_fidx idx a_hidx;
           [a_node]
+          end
         else
           []
+    end
+    else
+      []
 
 
 let rec apply_instrs annots fidx curi is =
