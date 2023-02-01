@@ -52,9 +52,11 @@ let get_inst_idx locs at =
     match locs with
     | [] -> assert false
     | l::rest ->
-        Printf.printf "at %s | l %s | isleft %b\n" (Source.string_of_region at) (Source.string_of_region l.at) (is_left at l.at);
+        Printf.printf "searching for  %s: [%d] " (Source.string_of_region at) idx;
+        Print.instr Out_channel.stdout 80 l;
         if (is_left at l.at) then idx else impl rest idx+1 in
-  impl locs 0
+  let ret = impl locs 0 in
+  ret
 
 
 (* Decoding *)
@@ -249,6 +251,7 @@ and parse_annot m annot =
   | _ -> parse_error annot.at ("Branch hint has an invalid value" ^ p) in
   let at = Source.{left = annot.at.left; right = at_last.right} in
   let hidx = get_inst_idx locs at in
+  Printf.printf "loc %s idx %d\n" (Source.string_of_region at) hidx;
   let e = { func_hints = IdxMap.add fidx [(hint, hidx) @@ at] IdxMap.empty } in
   e @@ at
 
@@ -260,7 +263,7 @@ let hint_to_string = function
 
 let collect_one f hat =
   let (h, hidx) = hat.it in
-  (Int32.to_int f, hidx, Sexpr.Node ("@metadata.code.branch_hint ", [Sexpr.Atom (hint_to_string h); Sexpr.Atom (string_of_int (Int32.to_int f))]))
+  (Int32.to_int f, hidx, Sexpr.Node ("@metadata.code.branch_hint ", [Sexpr.Atom (hint_to_string h)]))
 
 let collect_func (f, hs) =
   List.map (collect_one f) hs
@@ -273,8 +276,9 @@ let rec get_instrs n1 n2 =
   | [] -> (n1, [])
   | (Sexpr.Atom s)::rest -> (n1 @ [Sexpr.Atom s], rest)
   | (Sexpr.Node (h, els))::rest ->
-      if ( String.starts_with ~prefix:"type" h
-        || String.starts_with ~prefix:"local" h
+      Printf.printf "h: %s\n" h;
+      if ( String.starts_with ~prefix:"type " h
+        || String.equal "local" h
         || String.starts_with ~prefix:"result" h ) then
         get_instrs (n1 @ [Sexpr.Node(h, els)]) rest
       else
@@ -288,10 +292,10 @@ let get_annot annots fidx idx h =
     match !annots with
     | [] -> []
     | (a_fidx, a_hidx, a_node)::rest ->
+        Printf.printf "%d %d | %d %d\n" fidx a_fidx idx a_hidx;
         if a_fidx = fidx && a_hidx = idx then
           begin
           annots := rest;
-          Printf.printf "%d %d | %d %d\n" fidx a_fidx idx a_hidx;
           [a_node]
           end
         else
@@ -307,8 +311,10 @@ let rec apply_instrs annots fidx curi is =
   | i::rest ->
       let idx = !curi in
       curi := idx+1;
+      Printf.printf "inst idx: %d " idx;
       let newn = match i with
       | Sexpr.Node (h, ns) ->
+        Printf.printf "%s\n" h;
         let annot = get_annot annots fidx idx h in
         if ( String.starts_with ~prefix:"block" h
           || String.starts_with ~prefix:"loop" h ) then
@@ -318,6 +324,7 @@ let rec apply_instrs annots fidx curi is =
           match ns with
           | [Sexpr.Node(hif, nif); Sexpr.Node(helse, nelse)] ->
               let newif = apply_instrs annots fidx curi nif in
+              curi := !curi + 1;
               let newelse = apply_instrs annots fidx curi nelse in
               annot @ [Sexpr.Node(h, [Sexpr.Node(hif, newif); Sexpr.Node(helse, newelse)])]
           | _ -> assert false
@@ -373,6 +380,7 @@ let check_one locs h =
   match List.nth_opt locs idx with
   | None -> check_error h.at "@metadata.code.branch_hint annotation: invalid offset"
   | Some i ->
+      Print.instr Out_channel.stdout 80 i;
       (match i.it with
       | If _ -> ()
       | BrIf _ -> ()
