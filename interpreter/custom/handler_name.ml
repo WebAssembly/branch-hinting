@@ -130,7 +130,7 @@ let decode_subsec id f default s =
     require (pos s = pos' + n) (pos s) "name subsection size mismatch";
     ss
 
-let decode _m custom =
+let decode _m _bs custom =
   let s = stream custom.it.content in
   try
     let module_ = decode_subsec 0x00 decode_module None s in
@@ -215,7 +215,7 @@ let encode_locals buf name_map_map =
     encode_subsec_end buf subsec
   end
 
-let encode _m sec =
+let encode _m _bs sec =
   let {module_; funcs; locals} = sec.it in
   let buf = Buffer.create 200 in
   encode_module buf module_;
@@ -297,7 +297,7 @@ let locate_module name at (m : module_) =
     | None -> parse_error at "misplaced @name annotation"
 
 
-let rec parse m annots =
+let rec parse m _bs annots =
   let ms = List.map (parse_annot m) annots in
   match ms with
   | [] -> []
@@ -326,9 +326,9 @@ and parse_end = function
 
 (* Printing *)
 
-let arrange m fmt =
+let arrange m bs fmt =
   (* Print as generic custom section *)
-  Handler_custom.arrange m (encode m fmt)
+  Handler_custom.arrange m bs ( encode m "" fmt)
 
 
 (* Checking *)

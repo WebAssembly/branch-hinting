@@ -206,12 +206,14 @@ let inline_type_explicit (c : context) x ft at =
 (* Custom annotations *)
 
 let parse_annots (m : module_) : Custom.section list =
+  let open Lexing in
+  let bs = Bytes.to_string (!Annot.cur_buf).lex_buffer in
   let annots = Annot.get m.at in
   let secs =
     Annot.NameMap.fold (fun name anns secs ->
       match Custom.handler name with
       | Some (module Handler) ->
-        let secs' = Handler.parse m anns in
+        let secs' = Handler.parse m bs anns in
         List.map (fun fmt ->
           let module S = struct module Handler = Handler let it = fmt end in
           (module S : Custom.Section)

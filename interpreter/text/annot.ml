@@ -22,8 +22,9 @@ module NameMap = Map.Make(struct type t = Ast.name let compare = compare end)
 type map = annot list NameMap.t
 
 let current : map ref = ref NameMap.empty
+let cur_buf: Lexing.lexbuf ref = ref (Lexing.from_string "")
 
-let clear () = current := NameMap.empty
+let clear () = current := NameMap.empty; cur_buf := Lexing.from_string ""
 
 let record annot =
   let old = Lib.Option.get (NameMap.find_opt annot.it.name !current) [] in
