@@ -264,14 +264,16 @@ let merge s1 s2 =
 let is_contained r1 r2 = r1.left >= r2.left && r1.right <= r2.right
 let is_left r1 r2 = r1.right <= r2.left
 
-let locate_func x name at (f : func) =
+let locate_func bs x name at (f : func) =
   if is_left at f.it.ftype.at then
     {empty with funcs = IdxMap.singleton x name}
-  else
-    (* TODO *)
+  else if (List.length f.it.body) == 0 || is_left at (List.hd f.it.body).at then
+    (* TODO re-parse the function params and locals from bs *)
     parse_error at "@name annotation: local names not yet supported"
+  else
+    parse_error at "@name annotation: misplaced annotation"
 
-let locate_module name at (m : module_) =
+let locate_module bs name at (m : module_) =
   if not (is_contained at m.at) then
     parse_error at "misplaced @name annotation";
   let {types; globals; tables; memories; funcs; start;
@@ -293,22 +295,22 @@ let locate_module name at (m : module_) =
   | at1::_ when is_left at at1 -> {empty with module_ = Some name}
   | _ ->
     match Lib.List.index_where (fun f -> is_contained at f.at) funcs with
-    | Some x -> locate_func (Int32.of_int x) name at (List.nth funcs x)
+    | Some x -> locate_func bs (Int32.of_int x) name at (List.nth funcs x)
     | None -> parse_error at "misplaced @name annotation"
 
 
-let rec parse m _bs annots =
-  let ms = List.map (parse_annot m) annots in
+let rec parse m bs annots =
+  let ms = List.map (parse_annot bs m) annots in
   match ms with
   | [] -> []
   | m::ms' -> [List.fold_left merge (empty @@ m.at) ms]
 
-and parse_annot m annot =
+and parse_annot bs m annot =
   let {name = n; items} = annot.it in
   assert (n = name);
   let name, items' = parse_name annot.at items in
   parse_end items';
-  locate_module name annot.at m @@ annot.at
+  locate_module bs name annot.at m @@ annot.at
 
 and parse_name at = function
   | {it = String s; at} :: items ->
