@@ -8,8 +8,7 @@ exception Syntax = Script.Syntax
 let parse' name lexbuf start =
   lexbuf.Lexing.lex_curr_p <-
     {lexbuf.Lexing.lex_curr_p with Lexing.pos_fname = name};
-  Annot.clear ();
-  Annot.cur_buf := lexbuf;
+  Annot.reset lexbuf ();
   try
     let result = start Lexer.token lexbuf in
     let annots = Annot.get_all () in

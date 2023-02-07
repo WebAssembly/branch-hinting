@@ -22,9 +22,15 @@ module NameMap = Map.Make(struct type t = Ast.name let compare = compare end)
 type map = annot list NameMap.t
 
 let current : map ref = ref NameMap.empty
-let cur_buf: Lexing.lexbuf ref = ref (Lexing.from_string "")
+let current_lexbuf: Lexing.lexbuf ref = ref (Lexing.from_string "")
 
-let clear () = current := NameMap.empty; cur_buf := Lexing.from_string ""
+let reset lexbuf () = current := NameMap.empty; current_lexbuf := lexbuf
+
+let get_source () =
+  let open Lexing in
+  let lex = !current_lexbuf in
+  (* TODO this is probably wrong *)
+  Bytes.sub_string lex.lex_buffer lex.lex_start_pos (lex.lex_buffer_len - lex.lex_start_pos)
 
 let record annot =
   let old = Lib.Option.get (NameMap.find_opt annot.it.name !current) [] in

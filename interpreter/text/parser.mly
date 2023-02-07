@@ -206,8 +206,7 @@ let inline_type_explicit (c : context) x ft at =
 (* Custom annotations *)
 
 let parse_annots (m : module_) : Custom.section list =
-  let open Lexing in
-  let bs = Bytes.to_string (!Annot.cur_buf).lex_buffer in
+  let bs = Annot.get_source () in
   let annots = Annot.get m.at in
   let secs =
     Annot.NameMap.fold (fun name anns secs ->
