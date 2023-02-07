@@ -267,7 +267,7 @@ let is_left r1 r2 = r1.right <= r2.left
 let locate_func bs x name at (f : func) =
   if is_left at f.it.ftype.at then
     {empty with funcs = IdxMap.singleton x name}
-  else if (List.length f.it.body) == 0 || is_left at (List.hd f.it.body).at then
+  else if List.length f.it.body == 0 || is_left at (List.hd f.it.body).at then
     (* TODO re-parse the function params and locals from bs *)
     parse_error at "@name annotation: local names not yet supported"
   else
