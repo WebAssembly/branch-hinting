@@ -131,8 +131,7 @@ open Sexpr
 let insert_custom ns n =
   match ns with
   | Sexpr.Atom _ -> assert false
-  | Node (name, secs) ->
-      Node (name, secs @ [n])
+  | Node (name, secs) -> Node (name, secs @ [n])
 
 let rec arrange _m ns custom =
   let {name; content; place} = custom.it in
