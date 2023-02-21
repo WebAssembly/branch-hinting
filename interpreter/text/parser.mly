@@ -207,6 +207,7 @@ let inline_type_explicit (c : context) x ft at =
 
 let parse_annots (m : module_) : Custom.section list =
   let bs = Annot.get_source () in
+  Printf.printf "source:\n%s\nstart:%d\n" bs (Parsing.symbol_start ());
   let annots = Annot.get m.at in
   let secs =
     Annot.NameMap.fold (fun name anns secs ->

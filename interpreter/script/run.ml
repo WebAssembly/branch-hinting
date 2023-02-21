@@ -134,6 +134,16 @@ let input_binary name buf run =
   input_from (fun _ ->
     [Module (None, Encoded (name, buf) @@ no_region) @@ no_region]) run
 
+type lexbuf_with_source = {
+  lexbuf: Lexing.lexbuf;
+  source: Buffer.t;
+}
+
+let lexbuf_from_channel ic = 
+let lexbuf_from_string ic = 
+let lexbuf_from_stdin ic = 
+TODO
+
 let input_sexpr_file input file run =
   trace ("Loading (" ^ file ^ ")...");
   let ic = open_in file in
