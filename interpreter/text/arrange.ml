@@ -619,24 +619,10 @@ let global off i g =
   let {gtype; ginit} = g.it in
   Node ("global $" ^ nat (off + i), global_type gtype :: list instr ginit.it)
 
-
-(* Custom section *)
-
-let custom_section m place (module S : Custom.Section) =
-  if Custom.(compare_place (S.Handler.place S.it) place) <= +1 then
-    Some (S.Handler.arrange m S.it)
-  else
-    None
+let custom m mnode (module S : Custom.Section) =
+  S.Handler.arrange m mnode S.it
 
 (* Module *)
-
-let rec iterate f xs =
-  match xs with
-  | [] -> [], []
-  | x::xs' ->
-    match f x with
-    | Some y -> let ys', xs'' = iterate f xs' in y::ys', xs''
-    | None -> [], xs
 
 let var_opt = function
   | None -> ""
@@ -648,30 +634,19 @@ let module_with_var_opt x_opt (m, cs) =
   let mx = ref 0 in
   let gx = ref 0 in
   let imports = list (import fx tx mx gx) m.it.imports in
-  let open Custom in
-  Node ("module" ^ var_opt x_opt,
-    let secs, cs = iterate (custom_section m (Before Type)) cs in secs @
+  let ret = Node ("module" ^ var_opt x_opt,
     listi typedef m.it.types @
-    let secs, cs = iterate (custom_section m (Before Import)) cs in secs @
     imports @
-    let secs, cs = iterate (custom_section m (Before Table)) cs in secs @
     listi (table !tx) m.it.tables @
-    let secs, cs = iterate (custom_section m (Before Memory)) cs in secs @
     listi (memory !mx) m.it.memories @
-    let secs, cs = iterate (custom_section m (Before Global)) cs in secs @
     listi (global !gx) m.it.globals @
-    let secs, cs = iterate (custom_section m (Before Export)) cs in secs @
     list export m.it.exports @
-    let secs, cs = iterate (custom_section m (Before Start)) cs in secs @
     opt start m.it.start @
-    let secs, cs = iterate (custom_section m (Before Elem)) cs in secs @
     listi elem m.it.elems @
-    let secs, cs = iterate (custom_section m (Before Code)) cs in secs @
     listi (func_with_index !fx) m.it.funcs @
-    let secs, cs = iterate (custom_section m (Before Data)) cs in secs @
-    listi data m.it.datas @
-    let secs, cs = iterate (custom_section m (After Data)) cs in secs
-  )
+    listi data m.it.datas
+  ) in
+  List.fold_left (custom m) ret cs
 
 
 let binary_module_with_var_opt x_opt bs =

@@ -920,15 +920,17 @@ struct
 end
 
 
-let encode_custom m (module S : Custom.Section) =
+let encode_custom m bs (module S : Custom.Section) =
   let open Source in
-  let c = S.Handler.encode m S.it in
+  let c = S.Handler.encode m bs S.it in
   Custom.{c.it with place = S.Handler.place S.it} @@ c.at
 
-let encode_with_custom (m, secs) =
-  let module E = E (struct let stream = stream () end) in
-  let cs = List.map (encode_custom m) secs in
-  E.module_ m cs; to_string E.s
-
 let encode m =
-  encode_with_custom (m, [])
+  let module E = E (struct let stream = stream () end) in
+  E.module_ m []; to_string E.s
+
+let encode_with_custom (m, secs) =
+  let bs = encode m in
+  let module E = E (struct let stream = stream () end) in
+  let cs = List.map (encode_custom m bs) secs in
+  E.module_ m cs; to_string E.s

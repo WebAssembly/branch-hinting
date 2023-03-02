@@ -22,8 +22,14 @@ module NameMap = Map.Make(struct type t = Ast.name let compare = compare end)
 type map = annot list NameMap.t
 
 let current : map ref = ref NameMap.empty
+let current_source : Buffer.t = Buffer.create 512
 
-let clear () = current := NameMap.empty
+let reset () =
+  current := NameMap.empty;
+  Buffer.clear current_source
+
+let get_source () =
+  Buffer.contents current_source
 
 let record annot =
   let old = Lib.Option.get (NameMap.find_opt annot.it.name !current) [] in

@@ -21,7 +21,7 @@ let decode_content m custom =
     let module S =
       struct
         module Handler = Handler
-        let it = Handler.decode m custom
+        let it = Handler.decode m "" custom
       end
     in Some (module S : Custom.Section)
   | None ->
@@ -31,18 +31,18 @@ let decode_content m custom =
     else
       None
 
-let decode m custom =
+let decode m _bs custom =
   ignore (decode_content m custom);
   custom
 
-let encode _m custom = custom
+let encode _m _bs custom = custom
 
 
 (* Parsing *)
 
 let parse_error at msg = raise (Custom.Syntax (at, msg))
 
-let rec parse m annots = List.map (parse_annot m) annots
+let rec parse m _bs annots = List.map (parse_annot m) annots
 
 and parse_annot m annot =
   let {name = n; items} = annot.it in
@@ -128,11 +128,14 @@ and parse_end = function
 
 open Sexpr
 
-let rec arrange _m custom =
+let rec arrange _m mnode custom =
   let {name; content; place} = custom.it in
-  Node ("@custom " ^ Arrange.name name,
+  let node = Node ("@custom " ^ Arrange.name name,
     arrange_place place :: Arrange.break_bytes content
-  )
+  ) in
+  match mnode with
+  | Sexpr.Atom _ -> assert false
+  | Node (name, secs) -> Node (name, secs @ [node])
 
 and arrange_place = function
   | Before sec -> Node ("before", [Atom (arrange_sec sec)])
