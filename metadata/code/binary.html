@@ -1,0 +1,126 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Binary Format &#8212; WebAssembly Custom Sections</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script>window.MathJax = {"tex": {"maxBuffer": 30720}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Text Format" href="text.html" />
+    <link rel="prev" title="Structure" href="syntax.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/webassembly.png" alt="Logo"/>
+            </a></p><h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="syntax.html">Structure</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Binary Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="text.html">Text Format</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="./_download/WebAssembly-Metadata-Code.pdf">Download as PDF</a></li>
+    
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="binary-format">
+<span id="binary"></span><h1>Binary Format<a class="headerlink" href="#binary-format" title="Permalink to this heading">¶</a></h1>
+<section id="code-metadata">
+<h2>Code Metadata<a class="headerlink" href="#code-metadata" title="Permalink to this heading">¶</a></h2>
+<p>All code metadata items of a given type <em>T</em> are grouped under a custom section
+named <em>‘metadata.code.T’</em>.
+The following parametrized grammar rules define the generic structure of a code metadata
+section of type <em>T</em>.</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{llcll}
+\def\mathdef1#1{{}}\mathdef1{code metadata section} &amp; \href{../appendix/custom.html#binary-branchhintsec}{\mathtt{codemetadatasec}}(\mathtt{T}) &amp;::=&amp;
+  \href{../binary/modules.html#binary-section}{\mathtt{section}}_0(\href{../appendix/custom.html#binary-branchhintsec}{\mathtt{codemetadata}}(\mathtt{T})) \\
+\def\mathdef1#1{{}}\mathdef1{code metadata} &amp; \href{../appendix/custom.html#binary-branchhintsec}{\mathtt{codemetadata}}(\mathtt{T}) &amp;::=&amp;
+  n{:}\href{../binary/values.html#binary-name}{\mathtt{name}} &amp; (\mathrel{\mbox{if}} n = \def\mathdef40#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef40{metadata.code.T}) \\ &amp;&amp;&amp;
+  \href{../binary/conventions.html#binary-vec}{\mathtt{vec}}(\href{../appendix/custom.html#binary-branchhintssec}{\mathtt{codemetadatafunc}}(\mathtt{T})) \\
+\def\mathdef1#1{{}}\mathdef1{code metadata function} &amp; \href{../appendix/custom.html#binary-branchhintssec}{\mathtt{codemetadatafunc}}(\mathtt{T}) &amp;::=&amp;
+  fidx{:}\href{../binary/modules.html#binary-funcidx}{\mathtt{funcidx}}~\href{../binary/conventions.html#binary-vec}{\mathtt{vec}}(\href{../appendix/custom.html#binary-branchhintsec}{\mathtt{codemetadataitem}}(\mathtt{T})) \\
+\def\mathdef1#1{{}}\mathdef1{code metadata item} &amp; \href{../appendix/custom.html#binary-branchhintsec}{\mathtt{codemetadataitem}}(\mathtt{T}) &amp;::=&amp;
+  \mathit{instoff}{:}\href{../binary/values.html#binary-int}{\def\mathdef6#1{{\mathtt{u}#1}}\mathdef6{\mathtt{32}}} ~~ \mathit{size}{:}\href{../binary/values.html#binary-int}{\def\mathdef6#1{{\mathtt{u}#1}}\mathdef6{\mathtt{32}}} &amp; (\mathrel{\mbox{if}} \mathit{size} = ||\mathtt{T}||) \\ &amp;&amp;&amp;
+   \mathit{data}{:}\mathtt{T} \\
+\end{array}\end{split}\]</div>
+<p id="index-0">Where <em>funcpos</em> is the byte offset of the annotation starting from the beginning of the function body, and <em>data</em> is a further payload, whose content depends on the type <em>T</em>.</p>
+<p><em>code metadata function</em> entries must appear in order of increasing <em>function id</em>, and duplicate id values are not allowed. <em>code metadata item</em> entries must appear in order of increasing <em>instruction offset</em>, and duplicate offset values are not allowed.</p>
+<section id="branch-hints">
+<h3>Branch Hints<a class="headerlink" href="#branch-hints" title="Permalink to this heading">¶</a></h3>
+<p>A Branch Hint is code metadata item with type <em>branch_hint</em>.
+All branch hints for a module are contained in a single code metadata section
+with name <em>‘metadata.code.branch_hint’</em>.</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{llcll}
+\def\mathdef1#1{{}}\mathdef1{branch hint section} &amp; \href{../appendix/custom.html#binary-branchhintsec}{\mathtt{branchhintsec}} &amp;::=&amp;
+  \href{../appendix/custom.html#binary-branchhintsec}{\mathtt{codemetadatasec}}(\href{../appendix/custom.html#binary-branchhintsec}{\mathtt{branch\_hint}}) \\
+\def\mathdef1#1{{}}\mathdef1{branch hint} &amp; \href{../appendix/custom.html#binary-branchhintsec}{\mathtt{branch\_hint}} &amp;::=&amp;
+  \def\mathdef41#1{\mathtt{0x#1}}\mathdef41{00} \\ &amp;&amp;|&amp;
+  \def\mathdef42#1{\mathtt{0x#1}}\mathdef42{01} \\
+\end{array}\end{split}\]</div>
+<span class="target" id="index-1"></span></section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &#169;2024, WebAssembly Community Group.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
