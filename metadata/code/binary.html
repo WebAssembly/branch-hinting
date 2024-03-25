@@ -70,36 +70,36 @@
   <section id="binary-format">
 <span id="binary"></span><h1>Binary Format<a class="headerlink" href="#binary-format" title="Permalink to this heading">¶</a></h1>
 <section id="code-metadata">
-<h2>Code Metadata<a class="headerlink" href="#code-metadata" title="Permalink to this heading">¶</a></h2>
-<p>All code metadata items of a given type <em>T</em> are grouped under a custom section
+<span id="binary-codemetadata"></span><h2>Code Metadata<a class="headerlink" href="#code-metadata" title="Permalink to this heading">¶</a></h2>
+<p>All code metadata items of a given format <em>T</em> are grouped under a custom section
 named <em>‘metadata.code.T’</em>.
 The following parametrized grammar rules define the generic structure of a code metadata
-section of type <em>T</em>.</p>
+section of format <em>T</em>.</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{array}{llcll}
-\def\mathdef1#1{{}}\mathdef1{code metadata section} &amp; \href{../appendix/custom.html#binary-branchhintsec}{\mathtt{codemetadatasec}}(\mathtt{T}) &amp;::=&amp;
-  \href{../binary/modules.html#binary-section}{\mathtt{section}}_0(\href{../appendix/custom.html#binary-branchhintsec}{\mathtt{codemetadata}}(\mathtt{T})) \\
-\def\mathdef1#1{{}}\mathdef1{code metadata} &amp; \href{../appendix/custom.html#binary-branchhintsec}{\mathtt{codemetadata}}(\mathtt{T}) &amp;::=&amp;
-  n{:}\href{../binary/values.html#binary-name}{\mathtt{name}} &amp; (\mathrel{\mbox{if}} n = \def\mathdef40#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef40{metadata.code.T}) \\ &amp;&amp;&amp;
-  \href{../binary/conventions.html#binary-vec}{\mathtt{vec}}(\href{../appendix/custom.html#binary-branchhintssec}{\mathtt{codemetadatafunc}}(\mathtt{T})) \\
-\def\mathdef1#1{{}}\mathdef1{code metadata function} &amp; \href{../appendix/custom.html#binary-branchhintssec}{\mathtt{codemetadatafunc}}(\mathtt{T}) &amp;::=&amp;
-  fidx{:}\href{../binary/modules.html#binary-funcidx}{\mathtt{funcidx}}~\href{../binary/conventions.html#binary-vec}{\mathtt{vec}}(\href{../appendix/custom.html#binary-branchhintsec}{\mathtt{codemetadataitem}}(\mathtt{T})) \\
-\def\mathdef1#1{{}}\mathdef1{code metadata item} &amp; \href{../appendix/custom.html#binary-branchhintsec}{\mathtt{codemetadataitem}}(\mathtt{T}) &amp;::=&amp;
-  \mathit{instoff}{:}\href{../binary/values.html#binary-int}{\def\mathdef6#1{{\mathtt{u}#1}}\mathdef6{\mathtt{32}}} ~~ \mathit{size}{:}\href{../binary/values.html#binary-int}{\def\mathdef6#1{{\mathtt{u}#1}}\mathdef6{\mathtt{32}}} &amp; (\mathrel{\mbox{if}} \mathit{size} = ||\mathtt{T}||) \\ &amp;&amp;&amp;
+\def\mathdef1#1{{}}\mathdef1{code metadata section} &amp; \href{binary.html#binary-codemetada}{\mathtt{codemetadatasec}}(\mathtt{T}) &amp;::=&amp;
+  \href{../../core/binary/modules.html#binary-section}{\mathtt{section}}_0(\href{binary.html#binary-codemetada}{\mathtt{codemetada}}(\mathtt{T})) \\
+\def\mathdef1#1{{}}\mathdef1{code metadata} &amp; \href{binary.html#binary-codemetada}{\mathtt{codemetada}}(\mathtt{T}) &amp;::=&amp;
+  n{:}\href{../../core/binary/values.html#binary-name}{\mathtt{name}} &amp; (\mathrel{\mbox{if}} n = \def\mathdef40#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef40{metadata.code.T}) \\ &amp;&amp;&amp;
+  \href{../../core/binary/conventions.html#binary-vec}{\mathtt{vec}}(\href{binary.html#binary-codemetada}{\mathtt{codemetadafunc}}(\mathtt{T})) \\
+\def\mathdef1#1{{}}\mathdef1{code metadata function} &amp; \href{binary.html#binary-codemetada}{\mathtt{codemetadafunc}}(\mathtt{T}) &amp;::=&amp;
+  fidx{:}\href{../../core/binary/modules.html#binary-funcidx}{\mathtt{funcidx}}~\href{../../core/binary/conventions.html#binary-vec}{\mathtt{vec}}(\href{binary.html#binary-codemetada}{\mathtt{codemetadataitem}}(\mathtt{T})) \\
+\def\mathdef1#1{{}}\mathdef1{code metadata item} &amp; \href{binary.html#binary-codemetada}{\mathtt{codemetadataitem}}(\mathtt{T}) &amp;::=&amp;
+  \mathit{instoff}{:}\href{../../core/binary/values.html#binary-int}{\def\mathdef6#1{{\mathtt{u}#1}}\mathdef6{\mathtt{32}}} ~~ \mathit{size}{:}\href{../../core/binary/values.html#binary-int}{\def\mathdef6#1{{\mathtt{u}#1}}\mathdef6{\mathtt{32}}} &amp; (\mathrel{\mbox{if}} \mathit{size} = ||\mathtt{T}||) \\ &amp;&amp;&amp;
    \mathit{data}{:}\mathtt{T} \\
 \end{array}\end{split}\]</div>
-<p id="index-0">Where <em>funcpos</em> is the byte offset of the annotation starting from the beginning of the function body, and <em>data</em> is a further payload, whose content depends on the type <em>T</em>.</p>
+<p id="index-0">Where <em>funcpos</em> is the byte offset of the annotation starting from the beginning of the function body, and <em>data</em> is a further payload, whose content depends on the format <em>T</em>.</p>
 <p><em>code metadata function</em> entries must appear in order of increasing <em>function id</em>, and duplicate id values are not allowed. <em>code metadata item</em> entries must appear in order of increasing <em>instruction offset</em>, and duplicate offset values are not allowed.</p>
 <section id="branch-hints">
-<h3>Branch Hints<a class="headerlink" href="#branch-hints" title="Permalink to this heading">¶</a></h3>
-<p>A Branch Hint is code metadata item with type <em>branch_hint</em>.
+<span id="binary-branchhints"></span><h3>Branch Hints<a class="headerlink" href="#branch-hints" title="Permalink to this heading">¶</a></h3>
+<p>A Branch Hint is code metadata item with format <em>branch_hint</em>.
 All branch hints for a module are contained in a single code metadata section
 with name <em>‘metadata.code.branch_hint’</em>.</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{array}{llcll}
-\def\mathdef1#1{{}}\mathdef1{branch hint section} &amp; \href{../appendix/custom.html#binary-branchhintsec}{\mathtt{branchhintsec}} &amp;::=&amp;
-  \href{../appendix/custom.html#binary-branchhintsec}{\mathtt{codemetadatasec}}(\href{../appendix/custom.html#binary-branchhintsec}{\mathtt{branch\_hint}}) \\
-\def\mathdef1#1{{}}\mathdef1{branch hint} &amp; \href{../appendix/custom.html#binary-branchhintsec}{\mathtt{branch\_hint}} &amp;::=&amp;
+\def\mathdef1#1{{}}\mathdef1{branch hint section} &amp; \href{binary.html#binary-branchhints}{\mathtt{branchhintsec}} &amp;::=&amp;
+  \href{binary.html#binary-codemetada}{\mathtt{codemetadatasec}}(\href{binary.html#binary-branchhints}{\mathtt{branchhint}}) \\
+\def\mathdef1#1{{}}\mathdef1{branch hint} &amp; \href{binary.html#binary-branchhints}{\mathtt{branchhint}} &amp;::=&amp;
   \def\mathdef41#1{\mathtt{0x#1}}\mathdef41{00} \\ &amp;&amp;|&amp;
   \def\mathdef42#1{\mathtt{0x#1}}\mathdef42{01} \\
 \end{array}\end{split}\]</div>
