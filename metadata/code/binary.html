@@ -18,7 +18,7 @@
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Text Format" href="text.html" />
-    <link rel="prev" title="Structure" href="syntax.html" />
+    <link rel="prev" title="Introduction" href="intro.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -36,7 +36,6 @@
             </a></p><h3>Navigation</h3>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="syntax.html">Structure</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Binary Format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="text.html">Text Format</a></li>
 </ul>
@@ -71,39 +70,50 @@
 <span id="binary"></span><h1>Binary Format<a class="headerlink" href="#binary-format" title="Permalink to this heading">¶</a></h1>
 <section id="code-metadata">
 <span id="binary-codemetadata"></span><h2>Code Metadata<a class="headerlink" href="#code-metadata" title="Permalink to this heading">¶</a></h2>
-<p>All code metadata items of a given format <em>T</em> are grouped under a custom section
+<p>A Code Metadata item is a piece of information logically attached to an instruction.</p>
+<p>An item is associated with a format, which defines the item’s payload.</p>
+<p>All code metadata items of a format named <em>T</em> are grouped under a custom section
 named <em>‘metadata.code.T’</em>.
 The following parametrized grammar rules define the generic structure of a code metadata
 section of format <em>T</em>.</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{array}{llcll}
-\def\mathdef1#1{{}}\mathdef1{code metadata section} &amp; \href{binary.html#binary-codemetada}{\mathtt{codemetadatasec}}(\mathtt{T}) &amp;::=&amp;
-  \href{../../core/binary/modules.html#binary-section}{\mathtt{section}}_0(\href{binary.html#binary-codemetada}{\mathtt{codemetada}}(\mathtt{T})) \\
-\def\mathdef1#1{{}}\mathdef1{code metadata} &amp; \href{binary.html#binary-codemetada}{\mathtt{codemetada}}(\mathtt{T}) &amp;::=&amp;
+\def\mathdef1#1{{}}\mathdef1{code metadata section} &amp; \href{binary.html#binary-codemetadata}{\mathtt{codemetadatasec}}(\mathtt{T}) &amp;::=&amp;
+  \href{../../core/binary/modules.html#binary-section}{\mathtt{section}}_0(\href{binary.html#binary-codemetadata}{\mathtt{codemetada}}(\mathtt{T})) \\
+\def\mathdef1#1{{}}\mathdef1{code metadata} &amp; \href{binary.html#binary-codemetadata}{\mathtt{codemetada}}(\mathtt{T}) &amp;::=&amp;
   n{:}\href{../../core/binary/values.html#binary-name}{\mathtt{name}} &amp; (\mathrel{\mbox{if}} n = \def\mathdef40#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef40{metadata.code.T}) \\ &amp;&amp;&amp;
-  \href{../../core/binary/conventions.html#binary-vec}{\mathtt{vec}}(\href{binary.html#binary-codemetada}{\mathtt{codemetadafunc}}(\mathtt{T})) \\
-\def\mathdef1#1{{}}\mathdef1{code metadata function} &amp; \href{binary.html#binary-codemetada}{\mathtt{codemetadafunc}}(\mathtt{T}) &amp;::=&amp;
-  fidx{:}\href{../../core/binary/modules.html#binary-funcidx}{\mathtt{funcidx}}~\href{../../core/binary/conventions.html#binary-vec}{\mathtt{vec}}(\href{binary.html#binary-codemetada}{\mathtt{codemetadataitem}}(\mathtt{T})) \\
-\def\mathdef1#1{{}}\mathdef1{code metadata item} &amp; \href{binary.html#binary-codemetada}{\mathtt{codemetadataitem}}(\mathtt{T}) &amp;::=&amp;
-  \mathit{instoff}{:}\href{../../core/binary/values.html#binary-int}{\def\mathdef6#1{{\mathtt{u}#1}}\mathdef6{\mathtt{32}}} ~~ \mathit{size}{:}\href{../../core/binary/values.html#binary-int}{\def\mathdef6#1{{\mathtt{u}#1}}\mathdef6{\mathtt{32}}} &amp; (\mathrel{\mbox{if}} \mathit{size} = ||\mathtt{T}||) \\ &amp;&amp;&amp;
+  \href{../../core/binary/conventions.html#binary-vec}{\mathtt{vec}}(\href{binary.html#binary-codemetadata}{\mathtt{codemetadafunc}}(\mathtt{T})) \\
+\def\mathdef1#1{{}}\mathdef1{code metadata function} &amp; \href{binary.html#binary-codemetadata}{\mathtt{codemetadafunc}}(\mathtt{T}) &amp;::=&amp;
+  x{:}\href{../../core/binary/modules.html#binary-funcidx}{\mathtt{funcidx}}~\href{../../core/binary/conventions.html#binary-vec}{\mathtt{vec}}(\href{binary.html#binary-codemetadata}{\mathtt{codemetadataitem}}(\mathtt{T})) \\
+\def\mathdef1#1{{}}\mathdef1{code metadata item} &amp; \href{binary.html#binary-codemetadata}{\mathtt{codemetadataitem}}(\mathtt{T}) &amp;::=&amp;
+  \mathit{off}{:}\href{../../core/binary/values.html#binary-int}{\def\mathdef6#1{{\mathtt{u}#1}}\mathdef6{\mathtt{32}}} ~~ \mathit{size}{:}\href{../../core/binary/values.html#binary-int}{\def\mathdef6#1{{\mathtt{u}#1}}\mathdef6{\mathtt{32}}} &amp; (\mathrel{\mbox{if}} \mathit{size} = ||\mathtt{T}||) \\ &amp;&amp;&amp;
    \mathit{data}{:}\mathtt{T} \\
 \end{array}\end{split}\]</div>
-<p id="index-0">Where <em>funcpos</em> is the byte offset of the annotation starting from the beginning of the function body, and <em>data</em> is a further payload, whose content depends on the format <em>T</em>.</p>
-<p><em>code metadata function</em> entries must appear in order of increasing <em>function id</em>, and duplicate id values are not allowed. <em>code metadata item</em> entries must appear in order of increasing <em>instruction offset</em>, and duplicate offset values are not allowed.</p>
+<p id="index-0">Where <span class="math notranslate nohighlight">\(\mathit{off}\)</span> is the byte offset of the annotation starting from the beginning of the function body, and <span class="math notranslate nohighlight">\(\mathit{data}\)</span> is a further payload, whose content depends on the format <span class="math notranslate nohighlight">\(T\)</span>.</p>
+<p><span class="math notranslate nohighlight">\(\href{binary.html#binary-codemetadata}{\mathtt{codemetadafunc}}\)</span> entries must appear in order of increasing <span class="math notranslate nohighlight">\(x\)</span>, and duplicate id values are not allowed. <span class="math notranslate nohighlight">\(\href{binary.html#binary-codemetadata}{\mathtt{codemetada}}\)</span> entries must appear in order of increasing <span class="math notranslate nohighlight">\(\mathit{off}\)</span>, and duplicate offset values are not allowed.</p>
 <section id="branch-hints">
 <span id="binary-branchhints"></span><h3>Branch Hints<a class="headerlink" href="#branch-hints" title="Permalink to this heading">¶</a></h3>
-<p>A Branch Hint is code metadata item with format <em>branch_hint</em>.
-All branch hints for a module are contained in a single code metadata section
+<p>A Branch Hint is a code metadata item with format <em>branch_hint</em>.</p>
+<p>It can only be attached to <span class="math notranslate nohighlight">\(\href{../../core/syntax/instructions.html#syntax-instr-control}{\mathsf{br\_if}}\)</span> and <span class="math notranslate nohighlight">\(\href{../../core/syntax/instructions.html#syntax-instr-control}{\mathsf{if}}\)</span> instructions.</p>
+<p>Its payload indicates whether the branch is likely or unlikely to be taken.</p>
+<p>All branch hints for a module are contained in a single code metadata section
 with name <em>‘metadata.code.branch_hint’</em>.</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{array}{llcll}
 \def\mathdef1#1{{}}\mathdef1{branch hint section} &amp; \href{binary.html#binary-branchhints}{\mathtt{branchhintsec}} &amp;::=&amp;
-  \href{binary.html#binary-codemetada}{\mathtt{codemetadatasec}}(\href{binary.html#binary-branchhints}{\mathtt{branchhint}}) \\
+  \href{binary.html#binary-codemetadata}{\mathtt{codemetadatasec}}(\href{binary.html#binary-branchhints}{\mathtt{branchhint}}) \\
 \def\mathdef1#1{{}}\mathdef1{branch hint} &amp; \href{binary.html#binary-branchhints}{\mathtt{branchhint}} &amp;::=&amp;
-  \def\mathdef41#1{\mathtt{0x#1}}\mathdef41{00} \\ &amp;&amp;|&amp;
+  \href{binary.html#binary-branchhints}{\mathtt{unlikely}} \\ &amp;&amp;|&amp;
+  \href{binary.html#binary-branchhints}{\mathtt{likely}} \\
+\def\mathdef1#1{{}}\mathdef1{unlikely} &amp; \href{binary.html#binary-branchhints}{\mathtt{unlikely}} &amp;::=&amp;
+  \def\mathdef41#1{\mathtt{0x#1}}\mathdef41{00} \\
+\def\mathdef1#1{{}}\mathdef1{likely} &amp; \href{binary.html#binary-branchhints}{\mathtt{likely}} &amp;::=&amp;
   \def\mathdef42#1{\mathtt{0x#1}}\mathdef42{01} \\
 \end{array}\end{split}\]</div>
-<span class="target" id="index-1"></span></section>
+<p id="index-1">A value of <span class="math notranslate nohighlight">\(\href{binary.html#binary-branchhints}{\mathtt{likely}}\)</span> means that the branch is likely to be taken, while a
+value of <span class="math notranslate nohighlight">\(\href{binary.html#binary-branchhints}{\mathtt{unlikely}}\)</span> means the opposite. A branch with no hints is considered
+equally likely to be taken or not.</p>
+</section>
 </section>
 </section>
 
