@@ -79,18 +79,18 @@ section of format <em>T</em>.</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{array}{llcll}
 \def\mathdef1#1{{}}\mathdef1{code metadata section} &amp; \href{binary.html#binary-codemetadata}{\mathtt{codemetadatasec}}(\mathtt{T}) &amp;::=&amp;
-  \href{../../core/binary/modules.html#binary-section}{\mathtt{section}}_0(\href{binary.html#binary-codemetadata}{\mathtt{codemetada}}(\mathtt{T})) \\
-\def\mathdef1#1{{}}\mathdef1{code metadata} &amp; \href{binary.html#binary-codemetadata}{\mathtt{codemetada}}(\mathtt{T}) &amp;::=&amp;
+  \href{../../core/binary/modules.html#binary-section}{\mathtt{section}}_0(\href{binary.html#binary-codemetadata}{\mathtt{codemetadata}}(\mathtt{T})) \\
+\def\mathdef1#1{{}}\mathdef1{code metadata} &amp; \href{binary.html#binary-codemetadata}{\mathtt{codemetadata}}(\mathtt{T}) &amp;::=&amp;
   n{:}\href{../../core/binary/values.html#binary-name}{\mathtt{name}} &amp; (\mathrel{\mbox{if}} n = \def\mathdef40#1{\mbox{‘}\mathtt{#1}\mbox{’}}\mathdef40{metadata.code.T}) \\ &amp;&amp;&amp;
-  \href{../../core/binary/conventions.html#binary-vec}{\mathtt{vec}}(\href{binary.html#binary-codemetadata}{\mathtt{codemetadafunc}}(\mathtt{T})) \\
-\def\mathdef1#1{{}}\mathdef1{code metadata function} &amp; \href{binary.html#binary-codemetadata}{\mathtt{codemetadafunc}}(\mathtt{T}) &amp;::=&amp;
+  \href{../../core/binary/conventions.html#binary-vec}{\mathtt{vec}}(\href{binary.html#binary-codemetadata}{\mathtt{codemetadatafunc}}(\mathtt{T})) \\
+\def\mathdef1#1{{}}\mathdef1{code metadata function} &amp; \href{binary.html#binary-codemetadata}{\mathtt{codemetadatafunc}}(\mathtt{T}) &amp;::=&amp;
   x{:}\href{../../core/binary/modules.html#binary-funcidx}{\mathtt{funcidx}}~\href{../../core/binary/conventions.html#binary-vec}{\mathtt{vec}}(\href{binary.html#binary-codemetadata}{\mathtt{codemetadataitem}}(\mathtt{T})) \\
 \def\mathdef1#1{{}}\mathdef1{code metadata item} &amp; \href{binary.html#binary-codemetadata}{\mathtt{codemetadataitem}}(\mathtt{T}) &amp;::=&amp;
   \mathit{off}{:}\href{../../core/binary/values.html#binary-int}{\def\mathdef6#1{{\mathtt{u}#1}}\mathdef6{\mathtt{32}}} ~~ \mathit{size}{:}\href{../../core/binary/values.html#binary-int}{\def\mathdef6#1{{\mathtt{u}#1}}\mathdef6{\mathtt{32}}} &amp; (\mathrel{\mbox{if}} \mathit{size} = ||\mathtt{T}||) \\ &amp;&amp;&amp;
    \mathit{data}{:}\mathtt{T} \\
 \end{array}\end{split}\]</div>
 <p id="index-0">Where <span class="math notranslate nohighlight">\(\mathit{off}\)</span> is the byte offset of the attached instruction, relative to the beginning of the <span class="math notranslate nohighlight">\(\href{../../core/binary/modules.html#binary-func}{\mathtt{func}}\)</span> declaration, and <span class="math notranslate nohighlight">\(\mathit{data}\)</span> is a further payload, whose content depends on the format <span class="math notranslate nohighlight">\(T\)</span>.</p>
-<p><span class="math notranslate nohighlight">\(\href{binary.html#binary-codemetadata}{\mathtt{codemetadafunc}}\)</span> entries must appear in order of increasing <span class="math notranslate nohighlight">\(x\)</span>, and duplicate id values are not allowed. <span class="math notranslate nohighlight">\(\href{binary.html#binary-codemetadata}{\mathtt{codemetada}}\)</span> entries must appear in order of increasing <span class="math notranslate nohighlight">\(\mathit{off}\)</span>, and duplicate offset values are not allowed.</p>
+<p><span class="math notranslate nohighlight">\(\href{binary.html#binary-codemetadata}{\mathtt{codemetadatafunc}}\)</span> entries must appear in order of increasing <span class="math notranslate nohighlight">\(x\)</span>, and duplicate id values are not allowed. <span class="math notranslate nohighlight">\(\href{binary.html#binary-codemetadata}{\mathtt{codemetadata}}\)</span> entries must appear in order of increasing <span class="math notranslate nohighlight">\(\mathit{off}\)</span>, and duplicate offset values are not allowed.</p>
 <section id="branch-hints">
 <span id="binary-branchhints"></span><h3>Branch Hints<a class="headerlink" href="#branch-hints" title="Permalink to this heading">¶</a></h3>
 <p>A Branch Hint is a code metadata item with format <em>branch_hint</em>.</p>
