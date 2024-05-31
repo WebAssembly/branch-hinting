@@ -75,10 +75,10 @@ publish: clean all deploy
 publish-main: clean main deploy
 
 .PHONY: all
-all:	pdf html
+all:	pdf html bikeshed
 
 .PHONY: main
-main:	pdf html
+main:	pdf html bikeshed
 
 # Dirty hack to avoid rebuilding the Bikeshed version for every push.
 .PHONY: bikeshed-keep

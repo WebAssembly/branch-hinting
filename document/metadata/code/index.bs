@@ -1,0 +1,31 @@
+<pre class='metadata'>
+Title: WebAssembly Code Metadata Specification
+Shortname: wasm-code-metadata
+Group: wasm
+Status: ED
+Issue Tracking: GitHub https://github.com/WebAssembly/spec/issues
+Level: 2
+TR: https://www.w3.org/TR/wasm-core-2/
+ED: https://webassembly.github.io/spec/core/bikeshed/
+Editor: Yuri Iozzelli, w3cid TODO
+Repository: WebAssembly/spec
+Markup Shorthands: css no, markdown no, algorithm no, idl no
+Abstract: This document describes the Code Metadata extension to the core WebAssembly standard.
+Prepare For TR: true
+Date: now
+</pre>
+
+<pre class='biblio'>
+{
+  "WEBASSEMBLY": {
+    "href": "https://webassembly.github.io/spec/",
+    "title": "WebAssembly Code Metadata Specification",
+    "publisher": "W3C WebAssembly Community Group",
+    "status": "Draft"
+  }
+}
+</pre>
+
+<pre class=include>
+path: _build/bikeshed_singlehtml/index_fixed.html
+</pre>
