@@ -97,7 +97,7 @@ quiettest/%: $(NAME)
 # Custom test suite
 
 CUSTOMTESTDIR =	../test/custom
-CUSTOMTESTDIRS =	$(shell cd $(CUSTOMTESTDIR); ls -d [a-z]*)
+CUSTOMTESTDIRS =	$(shell cd $(CUSTOMTESTDIR); find . -maxdepth 1 -type d -not -path "." -printf "%f ")
 CUSTOMTESTFILES =	$(shell cd $(CUSTOMTESTDIR); ls [a-z]*/*.wast)
 CUSTOMTESTS =		$(CUSTOMTESTFILES:%.wast=%)
 CUSTOMOPTS = -c custom $(CUSTOMTESTDIRS:%=-c %)
