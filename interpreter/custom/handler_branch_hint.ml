@@ -65,6 +65,7 @@ let get_nth_inst locs idx =
   | Some (_, i) -> Some i
   | None -> None
 
+
 (* Decoding *)
 
 (* TODO: make Decode module reusable instead of duplicating code *)
@@ -144,21 +145,27 @@ let decode_hint locs foff s =
 
 let decode_func_hints locs foff = decode_vec (decode_hint locs foff)
 
-let decode_func m s =
+let get_func_start_off f bs =
+  let s = stream bs in
+  skip f.at.left.column s;
+  let _ = decode_u32 s in
+  pos s
+
+let decode_func m bs s =
   let fidx = decode_u32 s in
   let f = get_func m fidx in
-  let foff = Int32.of_int f.at.left.column in
+  let foff = Int32.of_int (get_func_start_off f bs) in
   let locs = flatten_instr_locs f.it.body in
   let hs = decode_func_hints locs foff s in
   (fidx, List.rev hs)
 
-let decode_funcs m s =
-  let fs = decode_vec (decode_func m) s in
+let decode_funcs m bs s =
+  let fs = decode_vec (decode_func m bs) s in
   IdxMap.add_seq (List.to_seq fs) IdxMap.empty
 
-let decode m _ custom =
+let decode m bs custom =
   let s = stream custom.it.content in
-  try { func_hints = decode_funcs m s } @@ custom.at
+  try { func_hints = decode_funcs m bs s } @@ custom.at
   with EOS -> decode_error (pos s) "unexpected end of name section"
 
 (* Encoding *)
@@ -200,22 +207,22 @@ let encode_hint locs foff buf h =
 
 let encode_func_hints buf locs foff = encode_vec buf (encode_hint locs foff)
 
-let encode_func m buf t =
+let encode_func m bs buf t =
   let fidx, hs = t in
   encode_u32 buf fidx;
   let f = get_func m fidx in
-  let foff = f.at.left.column in
+  let foff = get_func_start_off f bs in
   let locs = flatten_instr_locs f.it.body in
   encode_func_hints buf locs foff hs
 
-let encode_funcs buf m fhs =
-  encode_vec buf (encode_func m) (List.of_seq (IdxMap.to_seq fhs))
+let encode_funcs buf m bs fhs =
+  encode_vec buf (encode_func m bs) (List.of_seq (IdxMap.to_seq fhs))
 
 let encode m bs sec =
   let { func_hints } = sec.it in
   let m2 = Decode.decode "" bs in
   let buf = Buffer.create 200 in
-  encode_funcs buf m2 func_hints;
+  encode_funcs buf m2 bs func_hints;
   let content = Buffer.contents buf in
   {
     name = Utf8.decode "metadata.code.branch_hint";
