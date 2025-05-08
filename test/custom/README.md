@@ -4,7 +4,7 @@ Tests are written in the [S-Expression script format](https://github.com/WebAsse
 
 The test suite can be run with the spec interpreter as follows:
 ```
-./run.py --wasm <path-to-wasm-interpreter>
+./run.sh --wasm <path-to-wasm-interpreter>
 ```
 where the path points to the spec interpreter executable (or a tool that understands similar options). If the binary is in the working directory, this option can be omitted.
 
