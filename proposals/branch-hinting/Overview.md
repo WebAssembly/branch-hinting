@@ -86,7 +86,7 @@ https://github.com/WebAssembly/meetings/blob/main/main/2021/CG-11-09.md
 The *branch hint section* is a **custom section** whose name string is `metadata.code.branch_hint`.
 The branch hints section should appear only once in a module, and only before the code section.
 
-The purpose of this section is to aid the compilation of conditional branch instructions, by providing a hint that a branch is very likely (or unlikely) to be taken.
+The purpose of this section is to aid the compilation of conditional branch instructions, by providing a hint that a branch's condition is very likely (or unlikely) to be true.
 
 The section contains a vector of *function branch hints* each representing the branch hints for a single function.
 
@@ -104,10 +104,10 @@ Each *branch hint* structure consists of
 * A |U32| with value `1`,
 * a |U32| indicating the meaning of the hint:
 
-| value | meaning           |
-|-------|-------------------|
-| 0     | likely not taken  |
-| 1     | likely  taken     |
+| value | meaning                   |
+|-------|---------------------------|
+| 0     | condition is likely false |
+| 1     | condition is likely true  |
 
 Elements of the vector of *branch hint* must appear in increasing byte offset order,
 and a byte offset can appear at most once. A |BRIF| or |IF| instruction must be present

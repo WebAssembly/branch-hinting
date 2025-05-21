@@ -45,7 +45,7 @@ A Branch Hint is a code metadata item with format *branch_hint*.
 
 It can only be attached to |BRIF| and |IF| instructions.
 
-Its payload indicates whether the branch is likely or unlikely to be taken.
+Its payload indicates whether the branch's condition is likely or unlikely to be true.
 
 All branch hints for a module are contained in a single code metadata section
 with name *'metadata.code.branch_hint'*.
@@ -64,6 +64,6 @@ with name *'metadata.code.branch_hint'*.
    \end{array}
 .. index:: ! branch hint section
 
-A value of |Blikely| means that the branch is likely to be taken, while a
+A value of |Blikely| means that the branch's condition is likely to be true, while a
 value of |Bunlikely| means the opposite. A branch with no hints is considered
-equally likely to be taken or not.
+equally likely to have its condition be true or not.
