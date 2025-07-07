@@ -4,9 +4,9 @@
   <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
   <title>WebAssembly Web API</title>
   <meta content="ED" name="w3c-status">
-  <meta content="Bikeshed version d765c696b, updated Fri Mar 8 15:58:52 2024 -0800" name="generator">
+  <meta content="Bikeshed version 618007319, updated Thu Jun 26 17:23:55 2025 -0700" name="generator">
   <link href="https://www.w3.org/TR/wasm-web-api-2/" rel="canonical">
-  <meta content="7b6af09fdfacd5945a69e645b493afd503a3d9e9" name="revision">
+  <meta content="23ce0bb32bbb690ce08877154e3879af060fb1d4" name="revision">
   <meta content="dark light" name="color-scheme">
 <style>/* Boilerplate: style-autolinks */
 .css.css, .property.property, .descriptor.descriptor {
@@ -700,23 +700,49 @@ D50 2deg illuminant, L in [0,100], a and b in [-128, 128]
 4 = lab(85,5,15)
 5 = lab(85,-10,-50)
 6 = lab(85,35,-15)
+
+For darkmode:
+0 = oklab(50%   0%  108%)
+1 = oklab(50% -51%   51%)
+2 = oklab(50% -64%  -20%)
+3 = oklab(50%   6%   19%)
+4 = oklab(50% -12%  -64%)
+5 = oklab(50%  44%  -19%)  
+6 = oklab(50% 102%   38%)
 */
+
 [data-algorithm] var { cursor: pointer; }
-var[data-var-color="0"] { background-color: #F4D200; box-shadow: 0 0 0 2px #F4D200; }
-var[data-var-color="1"] { background-color: #FF87A2; box-shadow: 0 0 0 2px #FF87A2; }
-var[data-var-color="2"] { background-color: #96E885; box-shadow: 0 0 0 2px #96E885; }
-var[data-var-color="3"] { background-color: #3EEED2; box-shadow: 0 0 0 2px #3EEED2; }
-var[data-var-color="4"] { background-color: #EACFB6; box-shadow: 0 0 0 2px #EACFB6; }
-var[data-var-color="5"] { background-color: #82DDFF; box-shadow: 0 0 0 2px #82DDFF; }
-var[data-var-color="6"] { background-color: #FFBCF2; box-shadow: 0 0 0 2px #FFBCF2; }
+var[data-var-color] { background-color: var(--var-bg); box-shadow: 0 0 0 2px var(--var-bg); }
+
+var[data-var-color] { --var-bg: #F4D200; }
+var[data-var-color="1"] { --var-bg: #FF87A2; }
+var[data-var-color="2"] { --var-bg: #96E885; }
+var[data-var-color="3"] { --var-bg: #3EEED2; }
+var[data-var-color="4"] { --var-bg: #EACFB6; }
+var[data-var-color="5"] { --var-bg: #82DDFF; }
+var[data-var-color="6"] { --var-vg: #FFBCF2; }
+
+@media (prefers-color-scheme: dark) {
+	var[data-var-color] { --var-bg: #bc1a00; }
+	var[data-var-color="1"] { --var-bg: #007f00; }
+	var[data-var-color="2"] { --var-bg: #008698; }
+	var[data-var-color="3"] { --var-bg: #7f5b2b; }
+	var[data-var-color="4"] { --var-bg: #004df3; }
+	var[data-var-color="5"] { --var-bg: #a1248a; }
+	var[data-var-color="6"] { --var-vg: #ff0000; }
+}
 </style>
   <link href="https://www.w3.org/StyleSheets/TR/2021/W3C-ED" rel="stylesheet">
   <link href="https://www.w3.org/StyleSheets/TR/2021/dark.css" media="(prefers-color-scheme: dark)" rel="stylesheet" type="text/css">
  <body class="h-entry">
   <div class="head">
-   <p data-fill-with="logo"><a class="logo" href="https://www.w3.org/"> <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2021/logos/W3C" width="72"> </a> </p>
+   <p data-fill-with="logo"><a class="logo" href="https://www.w3.org/">
+    <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2021/logos/W3C" width="72">
+</a>
+</p>
    <h1 class="p-name no-ref" id="title">WebAssembly Web API</h1>
-   <p id="w3c-state"><a href="https://www.w3.org/standards/types#ED">Editor’s Draft</a>, <time class="dt-updated" datetime="2024-05-07">7 May 2024</time></p>
+   <p id="w3c-state"><a href="https://www.w3.org/standards/types/#ED">Editor’s Draft</a>,
+    <time class="dt-updated" datetime="2025-07-07">7 July 2025</time></p>
    <details open>
     <summary>More details about this document</summary>
     <div data-fill-with="spec-metadata">
@@ -735,32 +761,55 @@ var[data-var-color="6"] { background-color: #FFBCF2; box-shadow: 0 0 0 2px #FFBC
     </div>
    </details>
    <div data-fill-with="warning"></div>
-   <p class="copyright" data-fill-with="copyright"><a href="https://www.w3.org/policies/#copyright">Copyright</a> © 2024 <a href="https://www.w3.org/">World Wide Web Consortium</a>. <abbr title="World Wide Web Consortium">W3C</abbr><sup>®</sup> <a href="https://www.w3.org/policies/#Legal_Disclaimer">liability</a>, <a href="https://www.w3.org/policies/#W3C_Trademarks">trademark</a> and <a href="https://www.w3.org/copyright/software-license/" rel="license" title="W3C Software and Document License">permissive document license</a> rules apply. </p>
+   <p class="copyright" data-fill-with="copyright"><a href="https://www.w3.org/policies/#copyright">Copyright</a> © 2025 <a href="https://www.w3.org/">World Wide Web Consortium</a>. <abbr title="World Wide Web Consortium">W3C</abbr><sup>®</sup> <a href="https://www.w3.org/policies/#Legal_Disclaimer">liability</a>, <a href="https://www.w3.org/policies/#W3C_Trademarks">trademark</a> and <a href="https://www.w3.org/copyright/software-license/" rel="license" title="W3C Software and Document License">permissive document license</a> rules apply.
+</p>
    <hr title="Separator for header">
   </div>
   <div class="p-summary" data-fill-with="abstract">
    <h2 class="no-num no-toc no-ref heading settled" id="abstract"><span class="content">Abstract</span></h2>
    <p>This document describes the integration of WebAssembly with the broader web platform.</p>
-    This is part of a collection of related documents:
+   
+
+
+
+This is part of a collection of related documents:
 the <a href="https://www.w3.org/TR/wasm-core/">Core WebAssembly Specification</a>,
 the <a href="https://www.w3.org/TR/wasm-js-api/">WebAssembly JS Interface</a>,
-and the <a href="https://www.w3.org/TR/wasm-web-api/">WebAssembly Web API</a>. 
+and the <a href="https://www.w3.org/TR/wasm-web-api/">WebAssembly Web API</a>.
+
   </div>
   <h2 class="no-num no-toc no-ref heading settled" id="sotd"><span class="content">Status of this document</span></h2>
   <div data-fill-with="status">
-   <p> This is a public copy of the editors’ draft.
+   <p>
+	This is a public copy of the editors’ draft.
 	It is provided for discussion only and may change at any moment.
 	Its publication here does not imply endorsement of its contents by W3C.
-	Don’t cite this document other than as work in progress. </p>
-   <p> <a href="https://github.com/WebAssembly/spec/issues">GitHub Issues</a> are preferred for discussion of this specification.
-  All issues and comments are <a href="https://github.com/WebAssembly/spec/issues?utf8=%E2%9C%93&amp;q=is%3Aissue++">archived</a>. </p>
-   <p> This document was produced by the <a href="https://www.w3.org/groups/wg/wasm">WebAssembly Working Group</a>. </p>
-   <p> This document was produced by a group operating under
+	Don’t cite this document other than as work in progress.
+</p>
+   <p>
+  <a href="https://github.com/WebAssembly/spec/issues">GitHub Issues</a>
+  are preferred for discussion of this specification.
+  All issues and comments are
+  <a href="https://github.com/WebAssembly/spec/issues?utf8=%E2%9C%93&amp;q=is%3Aissue++">archived</a>.
+</p>
+   <p>
+  This document was produced by the
+  <a href="https://www.w3.org/groups/wg/wasm">WebAssembly Working Group</a>.
+</p>
+   <p>
+	This document was produced by a group operating under
 	the <a href="https://www.w3.org/Consortium/Patent-Policy-20170801/">W3C Patent Policy</a>.
-	W3C maintains a <a href="https://www.w3.org/2004/01/pp-impl/101196/status" rel="disclosure">public list of any patent disclosures</a> made in connection with the deliverables of the group;
+	W3C maintains a <a href="https://www.w3.org/2004/01/pp-impl/101196/status" rel="disclosure">public list of any patent disclosures</a>
+	made in connection with the deliverables of the group;
 	that page also includes instructions for disclosing a patent.
-	An individual who has actual knowledge of a patent which the individual believes contains <a href="https://www.w3.org/Consortium/Patent-Policy-20170801/#def-essential">Essential Claim(s)</a> must disclose the information in accordance with <a href="https://www.w3.org/Consortium/Patent-Policy-20170801/#sec-Disclosure">section 6 of the W3C Patent Policy</a>. </p>
-   <p> This document is governed by the <a href="https://www.w3.org/2023/Process-20231103/" id="w3c_process_revision">03 November 2023 W3C Process Document</a>. </p>
+	An individual who has actual knowledge of a patent that the individual believes contains <a href="https://www.w3.org/Consortium/Patent-Policy-20170801/#def-essential">Essential Claim(s)</a>
+	must disclose the information in accordance with <a href="https://www.w3.org/Consortium/Patent-Policy-20170801/#sec-Disclosure">section 6 of the W3C Patent Policy</a>.
+
+</p>
+   <p>
+	This document is governed by the <a href="https://www.w3.org/policies/process/20231103/" id="w3c_process_revision">03 November 2023 W3C Process Document</a>.
+
+</p>
    <p></p>
   </div>
   <div data-fill-with="at-risk"></div>
@@ -801,9 +850,14 @@ and the <a href="https://www.w3.org/TR/wasm-web-api/">WebAssembly Web API</a>.
       <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-promise" id="ref-for-idl-promise③"><c- b>Promise</c-></a>&lt;<a data-link-type="idl-name" href="https://fetch.spec.whatwg.org/#response" id="ref-for-response①"><c- n>Response</c-></a>> <dfn class="dfn-paneled idl-code" data-dfn-for="WebAssembly/instantiateStreaming(source, importObject), WebAssembly/instantiateStreaming(source)" data-dfn-type="argument" data-export id="dom-webassembly-instantiatestreaming-source-importobject-source"><code><c- g>source</c-></code></dfn>, <c- b>optional</c-> <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-object" id="ref-for-idl-object"><c- b>object</c-></a> <dfn class="dfn-paneled idl-code" data-dfn-for="WebAssembly/instantiateStreaming(source, importObject), WebAssembly/instantiateStreaming(source)" data-dfn-type="argument" data-export id="dom-webassembly-instantiatestreaming-source-importobject-importobject"><code><c- g>importObject</c-></code></dfn>);
 };
 </pre>
-   <div class="algorithm" data-algorithm="compileStreaming(source)" data-algorithm-for="WebAssembly"> The <dfn class="dfn-paneled idl-code" data-dfn-for="WebAssembly" data-dfn-type="method" data-export id="dom-webassembly-compilestreaming"><code>compileStreaming(<var>source</var>)</code></dfn> method, when invoked, returns the result of <a data-link-type="dfn" href="#compile-a-potential-webassembly-response" id="ref-for-compile-a-potential-webassembly-response">compiling a potential WebAssembly response</a> with <var>source</var>. </div>
+   <div class="algorithm" data-algorithm="compileStreaming(source)" data-algorithm-for="WebAssembly">
+The <dfn class="dfn-paneled idl-code" data-dfn-for="WebAssembly" data-dfn-type="method" data-export id="dom-webassembly-compilestreaming"><code>compileStreaming(<var>source</var>)</code></dfn> method, when invoked, returns the result of <a data-link-type="dfn" href="#compile-a-potential-webassembly-response" id="ref-for-compile-a-potential-webassembly-response">compiling a potential WebAssembly response</a> with <var>source</var>.
+</div>
    <div class="algorithm" data-algorithm="instantiateStreaming(source, importObject)" data-algorithm-for="WebAssembly">
-     The <dfn class="dfn-paneled idl-code" data-dfn-for="WebAssembly" data-dfn-type="method" data-export data-lt="instantiateStreaming(source, importObject)|instantiateStreaming(source)" id="dom-webassembly-instantiatestreaming"><code>instantiateStreaming(<var>source</var>, <var>importObject</var>)</code></dfn> method, when invoked, performs the following steps: 
+    
+The <dfn class="dfn-paneled idl-code" data-dfn-for="WebAssembly" data-dfn-type="method" data-export data-lt="instantiateStreaming(source, importObject)|instantiateStreaming(source)" id="dom-webassembly-instantiatestreaming"><code>instantiateStreaming(<var>source</var>, <var>importObject</var>)</code></dfn> method, when invoked, performs the following steps:
+
+
     <ol>
      <li data-md>
       <p>Let <var>promiseOfModule</var> be the result of <a data-link-type="dfn" href="#compile-a-potential-webassembly-response" id="ref-for-compile-a-potential-webassembly-response①">compiling a potential WebAssembly response</a> with <var>source</var>.</p>
@@ -812,11 +866,17 @@ and the <a href="https://www.w3.org/TR/wasm-web-api/">WebAssembly Web API</a>.
     </ol>
    </div>
    <div class="algorithm" data-algorithm="compile a potential WebAssembly response">
-     To <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="compile-a-potential-webassembly-response">compile a potential WebAssembly response</dfn> with a promise of a <code class="idl"><a data-link-type="idl" href="https://fetch.spec.whatwg.org/#response" id="ref-for-response②">Response</a></code> <var>source</var>, perform the following steps: 
+    
+To <dfn class="dfn-paneled" data-dfn-type="dfn" data-noexport id="compile-a-potential-webassembly-response">compile a potential WebAssembly response</dfn> with a promise of a <code class="idl"><a data-link-type="idl" href="https://fetch.spec.whatwg.org/#response" id="ref-for-response②">Response</a></code> <var>source</var>, perform the following steps:
+
+
     <p class="note" role="note"><span class="marker">Note:</span> This algorithm accepts a <code class="idl"><a data-link-type="idl" href="https://fetch.spec.whatwg.org/#response" id="ref-for-response③">Response</a></code> object, or a
     promise for one, and compiles and instantiates the resulting bytes of the response. This compilation
-    can be performed in the background and in a streaming manner. If the <code class="idl"><a data-link-type="idl" href="https://fetch.spec.whatwg.org/#response" id="ref-for-response④">Response</a></code> is not <a data-link-type="dfn" href="https://html.spec.whatwg.org/#cors-same-origin" id="ref-for-cors-same-origin">CORS-same-origin</a>, does not represent an <a data-link-type="dfn" href="https://fetch.spec.whatwg.org/#ok-status" id="ref-for-ok-status">ok status</a>, or does not match the <code>`application/wasm`</code> MIME type, the returned promise will be rejected with a <code class="idl"><a data-link-type="idl" href="https://tc39.github.io/ecma262/#sec-native-error-types-used-in-this-standard-typeerror" id="ref-for-sec-native-error-types-used-in-this-standard-typeerror">TypeError</a></code>; if
-    compilation or instantiation fails, the returned promise will be rejected with a <code class="idl"><a data-link-type="idl" href="https://webassembly.github.io/spec/js-api/#exceptiondef-compileerror" id="ref-for-exceptiondef-compileerror">CompileError</a></code> or other relevant error type, depending on the cause of failure.</p>
+    can be performed in the background and in a streaming manner. If the <code class="idl"><a data-link-type="idl" href="https://fetch.spec.whatwg.org/#response" id="ref-for-response④">Response</a></code> is not
+    <a data-link-type="dfn" href="https://html.spec.whatwg.org/#cors-same-origin" id="ref-for-cors-same-origin">CORS-same-origin</a>, does not represent an <a data-link-type="dfn" href="https://fetch.spec.whatwg.org/#ok-status" id="ref-for-ok-status">ok status</a>, or does not match the
+    <code>`application/wasm`</code> MIME type, the returned promise will be rejected with a <code class="idl"><a data-link-type="idl" href="https://tc39.github.io/ecma262/#sec-native-error-types-used-in-this-standard-typeerror" id="ref-for-sec-native-error-types-used-in-this-standard-typeerror">TypeError</a></code>; if
+    compilation or instantiation fails, the returned promise will be rejected with a
+    <code class="idl"><a data-link-type="idl" href="https://webassembly.github.io/spec/js-api/#exceptiondef-compileerror" id="ref-for-exceptiondef-compileerror">CompileError</a></code> or other relevant error type, depending on the cause of failure.</p>
     <ol>
      <li data-md>
       <p>Let <var>returnValue</var> be <a data-link-type="dfn" href="https://webidl.spec.whatwg.org/#a-new-promise" id="ref-for-a-new-promise">a new promise</a></p>
@@ -875,7 +935,7 @@ and the <a href="https://www.w3.org/TR/wasm-web-api/">WebAssembly Web API</a>.
     <li data-md>
      <p>Set <var>serialized</var>.[[Bytes]] to the <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/structured-data.html#sub-serialization" id="ref-for-sub-serialization">sub-serialization</a> of <var>value</var>.[[Bytes]].</p>
     <li data-md>
-     <p>Set <var>serialized</var>.[[AgentCluster]] to the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#current-realm" id="ref-for-current-realm">current Realm</a>'s corresponding <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-agent-clusters" id="ref-for-sec-agent-clusters">agent cluster</a>.</p>
+     <p>Set <var>serialized</var>.[[AgentCluster]] to the <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#current-realm" id="ref-for-current-realm">current Realm</a>’s corresponding <a data-link-type="dfn" href="https://tc39.github.io/ecma262/#sec-agent-clusters" id="ref-for-sec-agent-clusters">agent cluster</a>.</p>
    </ol>
    <p>The <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/structured-data.html#deserialization-steps" id="ref-for-deserialization-steps">deserialization steps</a>, given <var>serialized</var>, <var>value</var>, and <var>targetRealm</var> are:</p>
    <ol>
@@ -891,7 +951,8 @@ and the <a href="https://www.w3.org/TR/wasm-web-api/">WebAssembly Web API</a>.
    <p>Engines should attempt to share/reuse internal compiled code when performing
 a structured serialization, although in corner cases like CPU upgrade or browser
 update, this might not be possible and full recompilation may be necessary.</p>
-   <p class="note" role="note"><span class="marker">Note:</span> The semantics of a structured serialization is as-if the binary source, from which the <code class="idl"><a data-link-type="idl" href="https://webassembly.github.io/spec/js-api/#module" id="ref-for-module②">Module</a></code> was compiled, is serialized, then deserialized, and recompiled into the target realm.
+   <p class="note" role="note"><span class="marker">Note:</span> The semantics of a structured serialization is as-if the binary source, from which the
+<code class="idl"><a data-link-type="idl" href="https://webassembly.github.io/spec/js-api/#module" id="ref-for-module②">Module</a></code> was compiled, is serialized, then deserialized, and recompiled into the target realm.
 Given the above engine optimizations, structured serialization provides developers
 explicit control over both compiled-code caching and cross-window/worker code
 sharing.</p>
@@ -926,12 +987,16 @@ It has the following format:</p>
      <p>The URL field may be interpreted differently depending on the
 context. When the response-based
 instantiation <a href="#streaming-modules">API</a> is used in a
-browser, the associated URL should be used; or when the <code class="idl"><a data-link-type="idl" href="https://tc39.github.io/ecma262/#sec-arraybuffer-objects" id="ref-for-sec-arraybuffer-objects①">ArrayBuffer</a></code>-based instantiation <a data-link-type="dfn" href="https://webassembly.github.io/spec/js-api/#dom-webassembly-instantiate" id="ref-for-dom-webassembly-instantiate">API</a> is used, the browser should represent
+browser, the associated URL should be used; or when the
+<code class="idl"><a data-link-type="idl" href="https://tc39.github.io/ecma262/#sec-arraybuffer-objects" id="ref-for-sec-arraybuffer-objects①">ArrayBuffer</a></code>-based instantiation
+<a data-link-type="dfn" href="https://webassembly.github.io/spec/js-api/#dom-webassembly-instantiate" id="ref-for-dom-webassembly-instantiate">API</a> is used, the browser should represent
 the location of the API call. This kind of instantiation is analogous to
 executing JavaScript using <code>eval</code>; therefore if the browser has an existing
 method to represent the location of the <code>eval</code> call it can use a similar
-one for <code>WebAssembly.instantiate</code>. For example if the browser uses <code>foo.js line 10 > eval</code> or <code>eval at bar (foo.js:10:3)</code> for <code>eval</code>, it could
-use <code>foo.js line 10 > WebAssembly.instantiate</code> or <code>WebAssembly.instantiate at bar (foo.js:10:3)</code>, respectively.
+one for <code>WebAssembly.instantiate</code>. For example if the browser uses
+<code>foo.js line 10 > eval</code> or <code>eval at bar (foo.js:10:3)</code> for <code>eval</code>, it could
+use <code>foo.js line 10 > WebAssembly.instantiate</code> or
+<code>WebAssembly.instantiate at bar (foo.js:10:3)</code>, respectively.
 Offline tools may use a filename instead.</p>
     <li data-md>
      <p>Using hexadecimal for module offsets matches common conventions in native tools
@@ -985,7 +1050,8 @@ review, approval, and registration with IANA.</p>
   such protection is needed it must be provided externally, e.g., through
   the use of HTTPS.</p>
     <dt>Interoperability Considerations:
-    <dd>See WebAssembly Core Conformance<br> https://www.w3.org/TR/wasm-core/#conformance
+    <dd>See WebAssembly Core Conformance<br>
+ https://www.w3.org/TR/wasm-core/#conformance
     <dt>Published specification:
     <dd>https://www.w3.org/TR/wasm-core-1/
  https://www.w3.org/TR/wasm-js-api-1/
@@ -1042,21 +1108,31 @@ review, approval, and registration with IANA.</p>
     in the normative parts of this document
     are to be interpreted as described in RFC 2119.
     However, for readability,
-    these words do not appear in all uppercase letters in this specification. </p>
+    these words do not appear in all uppercase letters in this specification.
+
+    </p>
    <p>All of the text of this specification is normative
-    except sections explicitly marked as non-normative, examples, and notes. <a data-link-type="biblio" href="#biblio-rfc2119" title="Key words for use in RFCs to Indicate Requirement Levels">[RFC2119]</a> </p>
+    except sections explicitly marked as non-normative, examples, and notes. <a data-link-type="biblio" href="#biblio-rfc2119" title="Key words for use in RFCs to Indicate Requirement Levels">[RFC2119]</a>
+
+    </p>
    <p>Examples in this specification are introduced with the words “for example”
     or are set apart from the normative text
     with <code>class="example"</code>,
-    like this: </p>
+    like this:
+
+    </p>
    <div class="example" id="w3c-example">
-    <a class="self-link" href="#w3c-example"></a> 
-    <p>This is an example of an informative example. </p>
+    <a class="self-link" href="#w3c-example"></a>
+        
+    <p>This is an example of an informative example.
+    </p>
    </div>
    <p>Informative notes begin with the word “Note”
     and are set apart from the normative text
     with <code>class="note"</code>,
-    like this: </p>
+    like this:
+
+    </p>
    <p class="note" role="note">Note, this is an informative note.</p>
    <section>
     <h3 class="no-ref no-num heading settled" id="w3c-conformant-algorithms"><span class="content">Conformant Algorithms</span><a class="self-link" href="#w3c-conformant-algorithms"></a></h3>
@@ -1065,14 +1141,17 @@ review, approval, and registration with IANA.</p>
     or "return false and abort these steps")
     are to be interpreted with the meaning of the key word
     ("must", "should", "may", etc)
-    used in introducing the algorithm. </p>
+    used in introducing the algorithm.
+
+    </p>
     <p>Conformance requirements phrased as algorithms or specific steps
     can be implemented in any manner,
     so long as the end result is equivalent.
     In particular, the algorithms defined in this specification
     are intended to be easy to understand
     and are not intended to be performant.
-    Implementers are encouraged to optimize. </p>
+    Implementers are encouraged to optimize.
+</p>
    </section>
   </div>
   <script src="https://www.w3.org/scripts/TR/2021/fixup.js"></script>
@@ -1092,7 +1171,7 @@ review, approval, and registration with IANA.</p>
      <li><span class="dfn-paneled" id="f17862f0">ArrayBuffer</span>
      <li><span class="dfn-paneled" id="58788f9d">TypeError</span>
      <li><span class="dfn-paneled" id="f6e4cbfd">agent cluster</span>
-     <li><span class="dfn-paneled" id="b107f911">current realm</span>
+     <li><span class="dfn-paneled" id="b107f911">current Realm</span>
     </ul>
    <li>
     <a data-link-type="biblio">[FETCH]</a> defines the following terms:
@@ -1101,7 +1180,7 @@ review, approval, and registration with IANA.</p>
      <li><span class="dfn-paneled" id="13c2b84c">consume body</span>
      <li><span class="dfn-paneled" id="d47d0690">get</span>
      <li><span class="dfn-paneled" id="f7b00a8b">header list</span>
-     <li><span class="dfn-paneled" id="ba6e4111">http tab or space byte</span>
+     <li><span class="dfn-paneled" id="ba6e4111">HTTP tab or space byte</span>
      <li><span class="dfn-paneled" id="a27468c5">ok status</span>
      <li><span class="dfn-paneled" id="e3201629">response</span>
      <li><span class="dfn-paneled" id="a1d47575">status</span>
@@ -1110,7 +1189,7 @@ review, approval, and registration with IANA.</p>
     <a data-link-type="biblio">[HTML]</a> defines the following terms:
     <ul>
      <li><span class="dfn-paneled" id="eb5c4be3">Serializable</span>
-     <li><span class="dfn-paneled" id="c4099679">cors-same-origin</span>
+     <li><span class="dfn-paneled" id="c4099679">CORS-same-origin</span>
      <li><span class="dfn-paneled" id="888d7c65">deserialization steps</span>
      <li><span class="dfn-paneled" id="b6ae4501">networking task source</span>
      <li><span class="dfn-paneled" id="f32dc6c1">serialization steps</span>
@@ -1130,8 +1209,8 @@ review, approval, and registration with IANA.</p>
      <li><span class="dfn-paneled" id="9feefb27">WebAssembly</span>
      <li><span class="dfn-paneled" id="ba9b32c1">WebAssemblyInstantiatedSource</span>
      <li><span class="dfn-paneled" id="70d2cdbd">asynchronously compile a webassembly module</span>
-     <li><span class="dfn-paneled" id="8beb99bd">compile a webassembly module</span>
-     <li><span class="dfn-paneled" id="72f9eaed">exported function</span>
+     <li><span class="dfn-paneled" id="8beb99bd">compile a WebAssembly module</span>
+     <li><span class="dfn-paneled" id="72f9eaed">Exported Function</span>
      <li><span class="dfn-paneled" id="275fa0e6">instantiate</span>
      <li><span class="dfn-paneled" id="1f72c462">instantiate a promise of a module</span>
     </ul>
@@ -1397,23 +1476,23 @@ let dfnPanelData = {
 "3b90bdcd": {"dfnID":"3b90bdcd","dfnText":"resolve","external":true,"refSections":[{"refs":[{"id":"ref-for-resolve"}],"title":"1. Streaming Module Compilation and Instantiation"}],"url":"https://webidl.spec.whatwg.org/#resolve"},
 "58788f9d": {"dfnID":"58788f9d","dfnText":"TypeError","external":true,"refSections":[{"refs":[{"id":"ref-for-sec-native-error-types-used-in-this-standard-typeerror"},{"id":"ref-for-sec-native-error-types-used-in-this-standard-typeerror\u2460"},{"id":"ref-for-sec-native-error-types-used-in-this-standard-typeerror\u2461"},{"id":"ref-for-sec-native-error-types-used-in-this-standard-typeerror\u2462"},{"id":"ref-for-sec-native-error-types-used-in-this-standard-typeerror\u2463"}],"title":"1. Streaming Module Compilation and Instantiation"}],"url":"https://tc39.github.io/ecma262/#sec-native-error-types-used-in-this-standard-typeerror"},
 "70d2cdbd": {"dfnID":"70d2cdbd","dfnText":"asynchronously compile a webassembly module","external":true,"refSections":[{"refs":[{"id":"ref-for-asynchronously-compile-a-webassembly-module"}],"title":"1. Streaming Module Compilation and Instantiation"}],"url":"https://webassembly.github.io/spec/js-api/#asynchronously-compile-a-webassembly-module"},
-"72f9eaed": {"dfnID":"72f9eaed","dfnText":"exported function","external":true,"refSections":[{"refs":[{"id":"ref-for-exported-function"}],"title":"3. Developer-Facing Display Conventions"}],"url":"https://webassembly.github.io/spec/js-api/#exported-function"},
+"72f9eaed": {"dfnID":"72f9eaed","dfnText":"Exported Function","external":true,"refSections":[{"refs":[{"id":"ref-for-exported-function"}],"title":"3. Developer-Facing Display Conventions"}],"url":"https://webassembly.github.io/spec/js-api/#exported-function"},
 "888d7c65": {"dfnID":"888d7c65","dfnText":"deserialization steps","external":true,"refSections":[{"refs":[{"id":"ref-for-deserialization-steps"}],"title":"2. Serialization"}],"url":"https://html.spec.whatwg.org/multipage/structured-data.html#deserialization-steps"},
 "889e932f": {"dfnID":"889e932f","dfnText":"Exposed","external":true,"refSections":[{"refs":[{"id":"ref-for-Exposed"}],"title":"1. Streaming Module Compilation and Instantiation"}],"url":"https://webidl.spec.whatwg.org/#Exposed"},
-"8beb99bd": {"dfnID":"8beb99bd","dfnText":"compile a webassembly module","external":true,"refSections":[{"refs":[{"id":"ref-for-compile-a-webassembly-module"}],"title":"2. Serialization"}],"url":"https://webassembly.github.io/spec/js-api/#compile-a-webassembly-module"},
+"8beb99bd": {"dfnID":"8beb99bd","dfnText":"compile a WebAssembly module","external":true,"refSections":[{"refs":[{"id":"ref-for-compile-a-webassembly-module"}],"title":"2. Serialization"}],"url":"https://webassembly.github.io/spec/js-api/#compile-a-webassembly-module"},
 "92d13070": {"dfnID":"92d13070","dfnText":"get a copy of the buffer source","external":true,"refSections":[{"refs":[{"id":"ref-for-dfn-get-buffer-source-copy"}],"title":"1. Streaming Module Compilation and Instantiation"}],"url":"https://webidl.spec.whatwg.org/#dfn-get-buffer-source-copy"},
 "970896d2": {"dfnID":"970896d2","dfnText":"byte-case-insensitive","external":true,"refSections":[{"refs":[{"id":"ref-for-byte-case-insensitive"}],"title":"1. Streaming Module Compilation and Instantiation"}],"url":"https://infra.spec.whatwg.org/#byte-case-insensitive"},
 "9feefb27": {"dfnID":"9feefb27","dfnText":"WebAssembly","external":true,"refSections":[{"refs":[{"id":"ref-for-namespacedef-webassembly"}],"title":"1. Streaming Module Compilation and Instantiation"}],"url":"https://webassembly.github.io/spec/js-api/#namespacedef-webassembly"},
 "a1d47575": {"dfnID":"a1d47575","dfnText":"status","external":true,"refSections":[{"refs":[{"id":"ref-for-concept-response-status"}],"title":"1. Streaming Module Compilation and Instantiation"}],"url":"https://fetch.spec.whatwg.org/#concept-response-status"},
 "a27468c5": {"dfnID":"a27468c5","dfnText":"ok status","external":true,"refSections":[{"refs":[{"id":"ref-for-ok-status"},{"id":"ref-for-ok-status\u2460"}],"title":"1. Streaming Module Compilation and Instantiation"}],"url":"https://fetch.spec.whatwg.org/#ok-status"},
-"b107f911": {"dfnID":"b107f911","dfnText":"current realm","external":true,"refSections":[{"refs":[{"id":"ref-for-current-realm"}],"title":"2. Serialization"}],"url":"https://tc39.github.io/ecma262/#current-realm"},
+"b107f911": {"dfnID":"b107f911","dfnText":"current Realm","external":true,"refSections":[{"refs":[{"id":"ref-for-current-realm"}],"title":"2. Serialization"}],"url":"https://tc39.github.io/ecma262/#current-realm"},
 "b262501e": {"dfnID":"b262501e","dfnText":"reject","external":true,"refSections":[{"refs":[{"id":"ref-for-reject"},{"id":"ref-for-reject\u2460"},{"id":"ref-for-reject\u2461"},{"id":"ref-for-reject\u2462"}],"title":"1. Streaming Module Compilation and Instantiation"}],"url":"https://webidl.spec.whatwg.org/#reject"},
 "b6ae4501": {"dfnID":"b6ae4501","dfnText":"networking task source","external":true,"refSections":[{"refs":[{"id":"ref-for-networking-task-source"}],"title":"1. Streaming Module Compilation and Instantiation"}],"url":"https://html.spec.whatwg.org/multipage/webappapis.html#networking-task-source"},
-"ba6e4111": {"dfnID":"ba6e4111","dfnText":"http tab or space byte","external":true,"refSections":[{"refs":[{"id":"ref-for-http-tab-or-space-byte"}],"title":"1. Streaming Module Compilation and Instantiation"}],"url":"https://fetch.spec.whatwg.org/#http-tab-or-space-byte"},
+"ba6e4111": {"dfnID":"ba6e4111","dfnText":"HTTP tab or space byte","external":true,"refSections":[{"refs":[{"id":"ref-for-http-tab-or-space-byte"}],"title":"1. Streaming Module Compilation and Instantiation"}],"url":"https://fetch.spec.whatwg.org/#http-tab-or-space-byte"},
 "ba9b32c1": {"dfnID":"ba9b32c1","dfnText":"WebAssemblyInstantiatedSource","external":true,"refSections":[{"refs":[{"id":"ref-for-dictdef-webassemblyinstantiatedsource"}],"title":"1. Streaming Module Compilation and Instantiation"}],"url":"https://webassembly.github.io/spec/js-api/#dictdef-webassemblyinstantiatedsource"},
 "bdbd19d1": {"dfnID":"bdbd19d1","dfnText":"Promise","external":true,"refSections":[{"refs":[{"id":"ref-for-idl-promise"},{"id":"ref-for-idl-promise\u2460"},{"id":"ref-for-idl-promise\u2461"},{"id":"ref-for-idl-promise\u2462"}],"title":"1. Streaming Module Compilation and Instantiation"}],"url":"https://webidl.spec.whatwg.org/#idl-promise"},
 "c187d599": {"dfnID":"c187d599","dfnText":"sub-deserialization","external":true,"refSections":[{"refs":[{"id":"ref-for-sub-deserialization"}],"title":"2. Serialization"}],"url":"https://html.spec.whatwg.org/multipage/structured-data.html#sub-deserialization"},
-"c4099679": {"dfnID":"c4099679","dfnText":"cors-same-origin","external":true,"refSections":[{"refs":[{"id":"ref-for-cors-same-origin"},{"id":"ref-for-cors-same-origin\u2460"}],"title":"1. Streaming Module Compilation and Instantiation"}],"url":"https://html.spec.whatwg.org/#cors-same-origin"},
+"c4099679": {"dfnID":"c4099679","dfnText":"CORS-same-origin","external":true,"refSections":[{"refs":[{"id":"ref-for-cors-same-origin"},{"id":"ref-for-cors-same-origin\u2460"}],"title":"1. Streaming Module Compilation and Instantiation"}],"url":"https://html.spec.whatwg.org/#cors-same-origin"},
 "compile-a-potential-webassembly-response": {"dfnID":"compile-a-potential-webassembly-response","dfnText":"compile a potential WebAssembly response","external":false,"refSections":[{"refs":[{"id":"ref-for-compile-a-potential-webassembly-response"},{"id":"ref-for-compile-a-potential-webassembly-response\u2460"}],"title":"1. Streaming Module Compilation and Instantiation"}],"url":"#compile-a-potential-webassembly-response"},
 "d47d0690": {"dfnID":"d47d0690","dfnText":"get","external":true,"refSections":[{"refs":[{"id":"ref-for-concept-header-list-get"}],"title":"1. Streaming Module Compilation and Instantiation"}],"url":"https://fetch.spec.whatwg.org/#concept-header-list-get"},
 "d54f5897": {"dfnID":"d54f5897","dfnText":"DataCloneError","external":true,"refSections":[{"refs":[{"id":"ref-for-datacloneerror"},{"id":"ref-for-datacloneerror\u2460"}],"title":"2. Serialization"}],"url":"https://webidl.spec.whatwg.org/#datacloneerror"},
@@ -1822,61 +1901,63 @@ function genLinkingSyntaxes(dfn) {
 "use strict";
 {
 let refsData = {
-"#compile-a-potential-webassembly-response": {"export":true,"for_":[],"level":"2","normative":true,"shortname":"wasm-web-api","spec":"wasm-web-api-2","status":"local","text":"compile a potential webassembly response","type":"dfn","url":"#compile-a-potential-webassembly-response"},
-"#dom-webassembly-compilestreaming": {"export":true,"for_":["WebAssembly"],"level":"2","normative":true,"shortname":"wasm-web-api","spec":"wasm-web-api-2","status":"local","text":"compileStreaming(source)","type":"method","url":"#dom-webassembly-compilestreaming"},
-"#dom-webassembly-instantiatestreaming": {"export":true,"for_":["WebAssembly"],"level":"2","normative":true,"shortname":"wasm-web-api","spec":"wasm-web-api-2","status":"local","text":"instantiateStreaming(source, importObject)","type":"method","url":"#dom-webassembly-instantiatestreaming"},
-"https://fetch.spec.whatwg.org/#concept-body-consume-body": {"export":true,"for_":[],"level":"","normative":true,"shortname":"fetch","spec":"fetch","status":"anchor-block","text":"consume body","type":"dfn","url":"https://fetch.spec.whatwg.org/#concept-body-consume-body"},
-"https://fetch.spec.whatwg.org/#concept-header-list-get": {"export":true,"for_":["header list"],"level":"1","normative":true,"shortname":"fetch","spec":"fetch","status":"current","text":"get","type":"dfn","url":"https://fetch.spec.whatwg.org/#concept-header-list-get"},
-"https://fetch.spec.whatwg.org/#concept-response-header-list": {"export":true,"for_":["response"],"level":"1","normative":true,"shortname":"fetch","spec":"fetch","status":"current","text":"header list","type":"dfn","url":"https://fetch.spec.whatwg.org/#concept-response-header-list"},
-"https://fetch.spec.whatwg.org/#concept-response-response": {"export":true,"for_":["Response"],"level":"1","normative":true,"shortname":"fetch","spec":"fetch","status":"current","text":"response","type":"dfn","url":"https://fetch.spec.whatwg.org/#concept-response-response"},
-"https://fetch.spec.whatwg.org/#concept-response-status": {"export":true,"for_":["response"],"level":"1","normative":true,"shortname":"fetch","spec":"fetch","status":"current","text":"status","type":"dfn","url":"https://fetch.spec.whatwg.org/#concept-response-status"},
-"https://fetch.spec.whatwg.org/#http-tab-or-space-byte": {"export":true,"for_":[],"level":"1","normative":true,"shortname":"fetch","spec":"fetch","status":"current","text":"http tab or space byte","type":"dfn","url":"https://fetch.spec.whatwg.org/#http-tab-or-space-byte"},
-"https://fetch.spec.whatwg.org/#ok-status": {"export":true,"for_":[],"level":"1","normative":true,"shortname":"fetch","spec":"fetch","status":"current","text":"ok status","type":"dfn","url":"https://fetch.spec.whatwg.org/#ok-status"},
-"https://fetch.spec.whatwg.org/#response": {"export":true,"for_":[],"level":"1","normative":true,"shortname":"fetch","spec":"fetch","status":"current","text":"Response","type":"interface","url":"https://fetch.spec.whatwg.org/#response"},
-"https://html.spec.whatwg.org/#cors-same-origin": {"export":true,"for_":[],"level":"","normative":true,"shortname":"html","spec":"html","status":"anchor-block","text":"cors-same-origin","type":"dfn","url":"https://html.spec.whatwg.org/#cors-same-origin"},
-"https://html.spec.whatwg.org/multipage/structured-data.html#deserialization-steps": {"export":true,"for_":[],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"deserialization steps","type":"dfn","url":"https://html.spec.whatwg.org/multipage/structured-data.html#deserialization-steps"},
-"https://html.spec.whatwg.org/multipage/structured-data.html#serializable": {"export":true,"for_":[],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"Serializable","type":"extended-attribute","url":"https://html.spec.whatwg.org/multipage/structured-data.html#serializable"},
-"https://html.spec.whatwg.org/multipage/structured-data.html#serialization-steps": {"export":true,"for_":[],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"serialization steps","type":"dfn","url":"https://html.spec.whatwg.org/multipage/structured-data.html#serialization-steps"},
-"https://html.spec.whatwg.org/multipage/structured-data.html#sub-deserialization": {"export":true,"for_":[],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"sub-deserialization","type":"dfn","url":"https://html.spec.whatwg.org/multipage/structured-data.html#sub-deserialization"},
-"https://html.spec.whatwg.org/multipage/structured-data.html#sub-serialization": {"export":true,"for_":[],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"sub-serialization","type":"dfn","url":"https://html.spec.whatwg.org/multipage/structured-data.html#sub-serialization"},
-"https://html.spec.whatwg.org/multipage/webappapis.html#networking-task-source": {"export":true,"for_":[],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"networking task source","type":"dfn","url":"https://html.spec.whatwg.org/multipage/webappapis.html#networking-task-source"},
-"https://infra.spec.whatwg.org/#byte-case-insensitive": {"export":true,"for_":[],"level":"1","normative":true,"shortname":"infra","spec":"infra","status":"current","text":"byte-case-insensitive","type":"dfn","url":"https://infra.spec.whatwg.org/#byte-case-insensitive"},
-"https://tc39.github.io/ecma262/#current-realm": {"export":true,"for_":[],"level":"262","normative":true,"shortname":"ecma","spec":"ecma-262","status":"anchor-block","text":"current realm","type":"dfn","url":"https://tc39.github.io/ecma262/#current-realm"},
-"https://tc39.github.io/ecma262/#sec-agent-clusters": {"export":true,"for_":[],"level":"262","normative":true,"shortname":"ecma","spec":"ecma-262","status":"anchor-block","text":"agent cluster","type":"dfn","url":"https://tc39.github.io/ecma262/#sec-agent-clusters"},
-"https://tc39.github.io/ecma262/#sec-arraybuffer-objects": {"export":true,"for_":[],"level":"262","normative":true,"shortname":"ecma","spec":"ecma-262","status":"anchor-block","text":"ArrayBuffer","type":"interface","url":"https://tc39.github.io/ecma262/#sec-arraybuffer-objects"},
-"https://tc39.github.io/ecma262/#sec-native-error-types-used-in-this-standard-typeerror": {"export":true,"for_":["ECMAScript"],"level":"262","normative":true,"shortname":"ecma","spec":"ecma-262","status":"anchor-block","text":"TypeError","type":"exception","url":"https://tc39.github.io/ecma262/#sec-native-error-types-used-in-this-standard-typeerror"},
-"https://webassembly.github.io/spec/core/appendix/custom.html?highlight=name%20section#binary-namesec": {"export":true,"for_":[],"level":"","normative":true,"shortname":"webassembly","spec":"webassembly","status":"anchor-block","text":"name section","type":"dfn","url":"https://webassembly.github.io/spec/core/appendix/custom.html?highlight=name%20section#binary-namesec"},
-"https://webassembly.github.io/spec/core/syntax/modules.html#syntax-funcidx": {"export":true,"for_":[],"level":"","normative":true,"shortname":"webassembly","spec":"webassembly","status":"anchor-block","text":"function index","type":"dfn","url":"https://webassembly.github.io/spec/core/syntax/modules.html#syntax-funcidx"},
-"https://webassembly.github.io/spec/js-api/#asynchronously-compile-a-webassembly-module": {"export":true,"for_":[],"level":"","normative":true,"shortname":"wasmjs","spec":"wasmjs","status":"anchor-block","text":"asynchronously compile a webassembly module","type":"dfn","url":"https://webassembly.github.io/spec/js-api/#asynchronously-compile-a-webassembly-module"},
-"https://webassembly.github.io/spec/js-api/#compile-a-webassembly-module": {"export":true,"for_":[],"level":"","normative":true,"shortname":"wasmjs","spec":"wasmjs","status":"anchor-block","text":"compile a webassembly module","type":"dfn","url":"https://webassembly.github.io/spec/js-api/#compile-a-webassembly-module"},
-"https://webassembly.github.io/spec/js-api/#dictdef-webassemblyinstantiatedsource": {"export":true,"for_":[],"level":"","normative":true,"shortname":"wasmjs","spec":"wasmjs","status":"anchor-block","text":"WebAssemblyInstantiatedSource","type":"interface","url":"https://webassembly.github.io/spec/js-api/#dictdef-webassemblyinstantiatedsource"},
-"https://webassembly.github.io/spec/js-api/#dom-webassembly-instantiate": {"export":true,"for_":[],"level":"","normative":true,"shortname":"wasmjs","spec":"wasmjs","status":"anchor-block","text":"instantiate","type":"dfn","url":"https://webassembly.github.io/spec/js-api/#dom-webassembly-instantiate"},
-"https://webassembly.github.io/spec/js-api/#exceptiondef-compileerror": {"export":true,"for_":[],"level":"","normative":true,"shortname":"wasmjs","spec":"wasmjs","status":"anchor-block","text":"CompileError","type":"exception","url":"https://webassembly.github.io/spec/js-api/#exceptiondef-compileerror"},
-"https://webassembly.github.io/spec/js-api/#exported-function": {"export":true,"for_":[],"level":"","normative":true,"shortname":"wasmjs","spec":"wasmjs","status":"anchor-block","text":"exported function","type":"dfn","url":"https://webassembly.github.io/spec/js-api/#exported-function"},
-"https://webassembly.github.io/spec/js-api/#instantiate-a-promise-of-a-module": {"export":true,"for_":[],"level":"","normative":true,"shortname":"wasmjs","spec":"wasmjs","status":"anchor-block","text":"instantiate a promise of a module","type":"dfn","url":"https://webassembly.github.io/spec/js-api/#instantiate-a-promise-of-a-module"},
-"https://webassembly.github.io/spec/js-api/#module": {"export":true,"for_":[],"level":"","normative":true,"shortname":"wasmjs","spec":"wasmjs","status":"anchor-block","text":"Module","type":"interface","url":"https://webassembly.github.io/spec/js-api/#module"},
-"https://webassembly.github.io/spec/js-api/#namespacedef-webassembly": {"export":true,"for_":[],"level":"","normative":true,"shortname":"wasmjs","spec":"wasmjs","status":"anchor-block","text":"WebAssembly","type":"namespace","url":"https://webassembly.github.io/spec/js-api/#namespacedef-webassembly"},
-"https://webidl.spec.whatwg.org/#Exposed": {"export":true,"for_":[],"level":"1","normative":true,"shortname":"webidl","spec":"webidl","status":"current","text":"Exposed","type":"extended-attribute","url":"https://webidl.spec.whatwg.org/#Exposed"},
-"https://webidl.spec.whatwg.org/#a-new-promise": {"export":true,"for_":[],"level":"1","normative":true,"shortname":"webidl","spec":"webidl","status":"current","text":"a new promise","type":"dfn","url":"https://webidl.spec.whatwg.org/#a-new-promise"},
-"https://webidl.spec.whatwg.org/#datacloneerror": {"export":true,"for_":[],"level":"1","normative":true,"shortname":"webidl","spec":"webidl","status":"current","text":"DataCloneError","type":"exception","url":"https://webidl.spec.whatwg.org/#datacloneerror"},
-"https://webidl.spec.whatwg.org/#dfn-get-buffer-source-copy": {"export":true,"for_":[],"level":"1","normative":true,"shortname":"webidl","spec":"webidl","status":"current","text":"get a copy of the buffer source","type":"dfn","url":"https://webidl.spec.whatwg.org/#dfn-get-buffer-source-copy"},
-"https://webidl.spec.whatwg.org/#idl-DOMException": {"export":true,"for_":[],"level":"1","normative":true,"shortname":"webidl","spec":"webidl","status":"current","text":"DOMException","type":"interface","url":"https://webidl.spec.whatwg.org/#idl-DOMException"},
-"https://webidl.spec.whatwg.org/#idl-object": {"export":true,"for_":[],"level":"1","normative":true,"shortname":"webidl","spec":"webidl","status":"current","text":"object","type":"interface","url":"https://webidl.spec.whatwg.org/#idl-object"},
-"https://webidl.spec.whatwg.org/#idl-promise": {"export":true,"for_":[],"level":"1","normative":true,"shortname":"webidl","spec":"webidl","status":"current","text":"Promise","type":"interface","url":"https://webidl.spec.whatwg.org/#idl-promise"},
-"https://webidl.spec.whatwg.org/#reject": {"export":true,"for_":[],"level":"1","normative":true,"shortname":"webidl","spec":"webidl","status":"current","text":"reject","type":"dfn","url":"https://webidl.spec.whatwg.org/#reject"},
-"https://webidl.spec.whatwg.org/#resolve": {"export":true,"for_":[],"level":"1","normative":true,"shortname":"webidl","spec":"webidl","status":"current","text":"resolve","type":"dfn","url":"https://webidl.spec.whatwg.org/#resolve"},
-"https://webidl.spec.whatwg.org/#upon-fulfillment": {"export":true,"for_":[],"level":"1","normative":true,"shortname":"webidl","spec":"webidl","status":"current","text":"upon fulfillment","type":"dfn","url":"https://webidl.spec.whatwg.org/#upon-fulfillment"},
-"https://webidl.spec.whatwg.org/#upon-rejection": {"export":true,"for_":[],"level":"1","normative":true,"shortname":"webidl","spec":"webidl","status":"current","text":"upon rejection","type":"dfn","url":"https://webidl.spec.whatwg.org/#upon-rejection"},
+"#compile-a-potential-webassembly-response": {"displayText":"compile a potential webassembly response","export":true,"for_":[],"level":"2","normative":true,"shortname":"wasm-web-api","spec":"wasm-web-api-2","status":"local","text":"compile a potential webassembly response","type":"dfn","url":"#compile-a-potential-webassembly-response"},
+"#dom-webassembly-compilestreaming": {"displayText":"compileStreaming(source)","export":true,"for_":["WebAssembly"],"level":"2","normative":true,"shortname":"wasm-web-api","spec":"wasm-web-api-2","status":"local","text":"compileStreaming(source)","type":"method","url":"#dom-webassembly-compilestreaming"},
+"#dom-webassembly-instantiatestreaming": {"displayText":"instantiateStreaming(source, importObject)","export":true,"for_":["WebAssembly"],"level":"2","normative":true,"shortname":"wasm-web-api","spec":"wasm-web-api-2","status":"local","text":"instantiateStreaming(source, importObject)","type":"method","url":"#dom-webassembly-instantiatestreaming"},
+"https://fetch.spec.whatwg.org/#concept-body-consume-body": {"displayText":"consume body","export":true,"for_":[],"level":"","normative":true,"shortname":"fetch","spec":"fetch","status":"anchor-block","text":"consume body","type":"dfn","url":"https://fetch.spec.whatwg.org/#concept-body-consume-body"},
+"https://fetch.spec.whatwg.org/#concept-header-list-get": {"displayText":"get","export":true,"for_":["header list"],"level":"1","normative":true,"shortname":"fetch","spec":"fetch","status":"current","text":"get","type":"dfn","url":"https://fetch.spec.whatwg.org/#concept-header-list-get"},
+"https://fetch.spec.whatwg.org/#concept-response-header-list": {"displayText":"header list","export":true,"for_":["response"],"level":"1","normative":true,"shortname":"fetch","spec":"fetch","status":"current","text":"header list","type":"dfn","url":"https://fetch.spec.whatwg.org/#concept-response-header-list"},
+"https://fetch.spec.whatwg.org/#concept-response-response": {"displayText":"response","export":true,"for_":["Response"],"level":"1","normative":true,"shortname":"fetch","spec":"fetch","status":"current","text":"response","type":"dfn","url":"https://fetch.spec.whatwg.org/#concept-response-response"},
+"https://fetch.spec.whatwg.org/#concept-response-status": {"displayText":"status","export":true,"for_":["response"],"level":"1","normative":true,"shortname":"fetch","spec":"fetch","status":"current","text":"status","type":"dfn","url":"https://fetch.spec.whatwg.org/#concept-response-status"},
+"https://fetch.spec.whatwg.org/#http-tab-or-space-byte": {"displayText":"HTTP tab or space byte","export":true,"for_":[],"level":"1","normative":true,"shortname":"fetch","spec":"fetch","status":"current","text":"http tab or space byte","type":"dfn","url":"https://fetch.spec.whatwg.org/#http-tab-or-space-byte"},
+"https://fetch.spec.whatwg.org/#ok-status": {"displayText":"ok status","export":true,"for_":[],"level":"1","normative":true,"shortname":"fetch","spec":"fetch","status":"current","text":"ok status","type":"dfn","url":"https://fetch.spec.whatwg.org/#ok-status"},
+"https://fetch.spec.whatwg.org/#response": {"displayText":"Response","export":true,"for_":[],"level":"1","normative":true,"shortname":"fetch","spec":"fetch","status":"current","text":"Response","type":"interface","url":"https://fetch.spec.whatwg.org/#response"},
+"https://html.spec.whatwg.org/#cors-same-origin": {"displayText":"CORS-same-origin","export":true,"for_":[],"level":"","normative":true,"shortname":"html","spec":"html","status":"anchor-block","text":"cors-same-origin","type":"dfn","url":"https://html.spec.whatwg.org/#cors-same-origin"},
+"https://html.spec.whatwg.org/multipage/structured-data.html#deserialization-steps": {"displayText":"deserialization steps","export":true,"for_":[],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"deserialization steps","type":"dfn","url":"https://html.spec.whatwg.org/multipage/structured-data.html#deserialization-steps"},
+"https://html.spec.whatwg.org/multipage/structured-data.html#serializable": {"displayText":"Serializable","export":true,"for_":[],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"Serializable","type":"extended-attribute","url":"https://html.spec.whatwg.org/multipage/structured-data.html#serializable"},
+"https://html.spec.whatwg.org/multipage/structured-data.html#serialization-steps": {"displayText":"serialization steps","export":true,"for_":[],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"serialization steps","type":"dfn","url":"https://html.spec.whatwg.org/multipage/structured-data.html#serialization-steps"},
+"https://html.spec.whatwg.org/multipage/structured-data.html#sub-deserialization": {"displayText":"sub-deserialization","export":true,"for_":[],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"sub-deserialization","type":"dfn","url":"https://html.spec.whatwg.org/multipage/structured-data.html#sub-deserialization"},
+"https://html.spec.whatwg.org/multipage/structured-data.html#sub-serialization": {"displayText":"sub-serialization","export":true,"for_":[],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"sub-serialization","type":"dfn","url":"https://html.spec.whatwg.org/multipage/structured-data.html#sub-serialization"},
+"https://html.spec.whatwg.org/multipage/webappapis.html#networking-task-source": {"displayText":"networking task source","export":true,"for_":[],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"networking task source","type":"dfn","url":"https://html.spec.whatwg.org/multipage/webappapis.html#networking-task-source"},
+"https://infra.spec.whatwg.org/#byte-case-insensitive": {"displayText":"byte-case-insensitive","export":true,"for_":[],"level":"1","normative":true,"shortname":"infra","spec":"infra","status":"current","text":"byte-case-insensitive","type":"dfn","url":"https://infra.spec.whatwg.org/#byte-case-insensitive"},
+"https://tc39.github.io/ecma262/#current-realm": {"displayText":"current Realm","export":true,"for_":[],"level":"262","normative":true,"shortname":"ecma","spec":"ecma-262","status":"anchor-block","text":"current realm","type":"dfn","url":"https://tc39.github.io/ecma262/#current-realm"},
+"https://tc39.github.io/ecma262/#sec-agent-clusters": {"displayText":"agent cluster","export":true,"for_":[],"level":"262","normative":true,"shortname":"ecma","spec":"ecma-262","status":"anchor-block","text":"agent cluster","type":"dfn","url":"https://tc39.github.io/ecma262/#sec-agent-clusters"},
+"https://tc39.github.io/ecma262/#sec-arraybuffer-objects": {"displayText":"ArrayBuffer","export":true,"for_":[],"level":"262","normative":true,"shortname":"ecma","spec":"ecma-262","status":"anchor-block","text":"ArrayBuffer","type":"interface","url":"https://tc39.github.io/ecma262/#sec-arraybuffer-objects"},
+"https://tc39.github.io/ecma262/#sec-native-error-types-used-in-this-standard-typeerror": {"displayText":"TypeError","export":true,"for_":["ECMAScript"],"level":"262","normative":true,"shortname":"ecma","spec":"ecma-262","status":"anchor-block","text":"TypeError","type":"exception","url":"https://tc39.github.io/ecma262/#sec-native-error-types-used-in-this-standard-typeerror"},
+"https://webassembly.github.io/spec/core/appendix/custom.html?highlight=name%20section#binary-namesec": {"displayText":"name section","export":true,"for_":[],"level":"","normative":true,"shortname":"webassembly","spec":"webassembly","status":"anchor-block","text":"name section","type":"dfn","url":"https://webassembly.github.io/spec/core/appendix/custom.html?highlight=name%20section#binary-namesec"},
+"https://webassembly.github.io/spec/core/syntax/modules.html#syntax-funcidx": {"displayText":"function index","export":true,"for_":[],"level":"","normative":true,"shortname":"webassembly","spec":"webassembly","status":"anchor-block","text":"function index","type":"dfn","url":"https://webassembly.github.io/spec/core/syntax/modules.html#syntax-funcidx"},
+"https://webassembly.github.io/spec/js-api/#asynchronously-compile-a-webassembly-module": {"displayText":"asynchronously compile a webassembly module","export":true,"for_":[],"level":"","normative":true,"shortname":"wasmjs","spec":"wasmjs","status":"anchor-block","text":"asynchronously compile a webassembly module","type":"dfn","url":"https://webassembly.github.io/spec/js-api/#asynchronously-compile-a-webassembly-module"},
+"https://webassembly.github.io/spec/js-api/#compile-a-webassembly-module": {"displayText":"compile a WebAssembly module","export":true,"for_":[],"level":"","normative":true,"shortname":"wasmjs","spec":"wasmjs","status":"anchor-block","text":"compile a webassembly module","type":"dfn","url":"https://webassembly.github.io/spec/js-api/#compile-a-webassembly-module"},
+"https://webassembly.github.io/spec/js-api/#dictdef-webassemblyinstantiatedsource": {"displayText":"WebAssemblyInstantiatedSource","export":true,"for_":[],"level":"","normative":true,"shortname":"wasmjs","spec":"wasmjs","status":"anchor-block","text":"WebAssemblyInstantiatedSource","type":"interface","url":"https://webassembly.github.io/spec/js-api/#dictdef-webassemblyinstantiatedsource"},
+"https://webassembly.github.io/spec/js-api/#dom-webassembly-instantiate": {"displayText":"instantiate","export":true,"for_":[],"level":"","normative":true,"shortname":"wasmjs","spec":"wasmjs","status":"anchor-block","text":"instantiate","type":"dfn","url":"https://webassembly.github.io/spec/js-api/#dom-webassembly-instantiate"},
+"https://webassembly.github.io/spec/js-api/#exceptiondef-compileerror": {"displayText":"CompileError","export":true,"for_":[],"level":"","normative":true,"shortname":"wasmjs","spec":"wasmjs","status":"anchor-block","text":"CompileError","type":"exception","url":"https://webassembly.github.io/spec/js-api/#exceptiondef-compileerror"},
+"https://webassembly.github.io/spec/js-api/#exported-function": {"displayText":"Exported Function","export":true,"for_":[],"level":"","normative":true,"shortname":"wasmjs","spec":"wasmjs","status":"anchor-block","text":"exported function","type":"dfn","url":"https://webassembly.github.io/spec/js-api/#exported-function"},
+"https://webassembly.github.io/spec/js-api/#instantiate-a-promise-of-a-module": {"displayText":"instantiate a promise of a module","export":true,"for_":[],"level":"","normative":true,"shortname":"wasmjs","spec":"wasmjs","status":"anchor-block","text":"instantiate a promise of a module","type":"dfn","url":"https://webassembly.github.io/spec/js-api/#instantiate-a-promise-of-a-module"},
+"https://webassembly.github.io/spec/js-api/#module": {"displayText":"Module","export":true,"for_":[],"level":"","normative":true,"shortname":"wasmjs","spec":"wasmjs","status":"anchor-block","text":"Module","type":"interface","url":"https://webassembly.github.io/spec/js-api/#module"},
+"https://webassembly.github.io/spec/js-api/#namespacedef-webassembly": {"displayText":"WebAssembly","export":true,"for_":[],"level":"","normative":true,"shortname":"wasmjs","spec":"wasmjs","status":"anchor-block","text":"WebAssembly","type":"namespace","url":"https://webassembly.github.io/spec/js-api/#namespacedef-webassembly"},
+"https://webidl.spec.whatwg.org/#Exposed": {"displayText":"Exposed","export":true,"for_":[],"level":"1","normative":true,"shortname":"webidl","spec":"webidl","status":"current","text":"Exposed","type":"extended-attribute","url":"https://webidl.spec.whatwg.org/#Exposed"},
+"https://webidl.spec.whatwg.org/#a-new-promise": {"displayText":"a new promise","export":true,"for_":[],"level":"1","normative":true,"shortname":"webidl","spec":"webidl","status":"current","text":"a new promise","type":"dfn","url":"https://webidl.spec.whatwg.org/#a-new-promise"},
+"https://webidl.spec.whatwg.org/#datacloneerror": {"displayText":"DataCloneError","export":true,"for_":[],"level":"1","normative":true,"shortname":"webidl","spec":"webidl","status":"current","text":"DataCloneError","type":"exception","url":"https://webidl.spec.whatwg.org/#datacloneerror"},
+"https://webidl.spec.whatwg.org/#dfn-get-buffer-source-copy": {"displayText":"get a copy of the buffer source","export":true,"for_":[],"level":"1","normative":true,"shortname":"webidl","spec":"webidl","status":"current","text":"get a copy of the buffer source","type":"dfn","url":"https://webidl.spec.whatwg.org/#dfn-get-buffer-source-copy"},
+"https://webidl.spec.whatwg.org/#idl-DOMException": {"displayText":"DOMException","export":true,"for_":[],"level":"1","normative":true,"shortname":"webidl","spec":"webidl","status":"current","text":"DOMException","type":"interface","url":"https://webidl.spec.whatwg.org/#idl-DOMException"},
+"https://webidl.spec.whatwg.org/#idl-object": {"displayText":"object","export":true,"for_":[],"level":"1","normative":true,"shortname":"webidl","spec":"webidl","status":"current","text":"object","type":"interface","url":"https://webidl.spec.whatwg.org/#idl-object"},
+"https://webidl.spec.whatwg.org/#idl-promise": {"displayText":"Promise","export":true,"for_":[],"level":"1","normative":true,"shortname":"webidl","spec":"webidl","status":"current","text":"Promise","type":"interface","url":"https://webidl.spec.whatwg.org/#idl-promise"},
+"https://webidl.spec.whatwg.org/#reject": {"displayText":"reject","export":true,"for_":[],"level":"1","normative":true,"shortname":"webidl","spec":"webidl","status":"current","text":"reject","type":"dfn","url":"https://webidl.spec.whatwg.org/#reject"},
+"https://webidl.spec.whatwg.org/#resolve": {"displayText":"resolve","export":true,"for_":[],"level":"1","normative":true,"shortname":"webidl","spec":"webidl","status":"current","text":"resolve","type":"dfn","url":"https://webidl.spec.whatwg.org/#resolve"},
+"https://webidl.spec.whatwg.org/#upon-fulfillment": {"displayText":"upon fulfillment","export":true,"for_":[],"level":"1","normative":true,"shortname":"webidl","spec":"webidl","status":"current","text":"upon fulfillment","type":"dfn","url":"https://webidl.spec.whatwg.org/#upon-fulfillment"},
+"https://webidl.spec.whatwg.org/#upon-rejection": {"displayText":"upon rejection","export":true,"for_":[],"level":"1","normative":true,"shortname":"webidl","spec":"webidl","status":"current","text":"upon rejection","type":"dfn","url":"https://webidl.spec.whatwg.org/#upon-rejection"},
 };
 
 function mkRefHint(link, ref) {
     const linkText = link.textContent;
     let dfnTextElements = '';
-    if (ref.text != linkText) {
+    if (ref.displayText.toLowerCase() != linkText.toLowerCase()) {
+        // Give the original term if it's being displayed in a different way.
+        // But allow casing differences, they're insignificant.
         dfnTextElements =
             mk.li({},
                 mk.b({}, "Term: "),
-                mk.span({}, ref.text)
+                mk.span({}, ref.displayText)
             );
     }
     const forList = ref.for_;
@@ -1946,7 +2027,12 @@ function hideRefHint(refHint) {
 function showRefHint(link) {
     if(link.classList.contains("dfn-link")) return;
     const url = link.getAttribute("href");
-    const ref = refsData[url];
+    const refHintKey = link.getAttribute("data-refhint-key");
+    let key = url;
+    if(refHintKey) {
+        key = refHintKey + "_" + url;
+    }
+    const ref = refsData[key];
     if(!ref) return;
 
     hideAllRefHints(); // Only display one at this time.

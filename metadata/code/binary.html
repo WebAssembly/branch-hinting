@@ -90,12 +90,14 @@ section of format <em>T</em>.</p>
    \mathit{data}{:}\mathtt{T} \\
 \end{array}\end{split}\]</div>
 <p id="index-0">Where <span class="math notranslate nohighlight">\(\mathit{off}\)</span> is the byte offset of the attached instruction, relative to the beginning of the <span class="math notranslate nohighlight">\(\href{../../core/binary/modules.html#binary-func}{\mathtt{func}}\)</span> declaration, and <span class="math notranslate nohighlight">\(\mathit{data}\)</span> is a further payload, whose content depends on the format <span class="math notranslate nohighlight">\(T\)</span>.</p>
-<p><span class="math notranslate nohighlight">\(\href{binary.html#binary-codemetadata}{\mathtt{codemetadatafunc}}\)</span> entries must appear in order of increasing <span class="math notranslate nohighlight">\(x\)</span>, and duplicate id values are not allowed. <span class="math notranslate nohighlight">\(\href{binary.html#binary-codemetadata}{\mathtt{codemetadata}}\)</span> entries must appear in order of increasing <span class="math notranslate nohighlight">\(\mathit{off}\)</span>, and duplicate offset values are not allowed.</p>
+<p>At most one <span class="math notranslate nohighlight">\(\href{binary.html#binary-codemetadata}{\mathtt{codemetadatasec}}\)</span> can be present in a module for a given format <em>T</em>, and it must appear before the <span class="math notranslate nohighlight">\(\href{../../core/binary/modules.html#binary-codesec}{\mathtt{codesec}}\)</span>.</p>
+<p><span class="math notranslate nohighlight">\(\href{binary.html#binary-codemetadata}{\mathtt{codemetadatafunc}}\)</span> entries must appear in order of increasing <span class="math notranslate nohighlight">\(x\)</span>, and duplicate id values are not allowed.</p>
+<p><span class="math notranslate nohighlight">\(\href{binary.html#binary-codemetadata}{\mathtt{codemetadata}}\)</span> entries must appear in order of increasing <span class="math notranslate nohighlight">\(\mathit{off}\)</span>, and duplicate offset values are not allowed.</p>
 <section id="branch-hints">
 <span id="binary-branchhints"></span><h3>Branch Hints<a class="headerlink" href="#branch-hints" title="Permalink to this heading">¶</a></h3>
 <p>A Branch Hint is a code metadata item with format <em>branch_hint</em>.</p>
 <p>It can only be attached to <span class="math notranslate nohighlight">\(\href{../../core/syntax/instructions.html#syntax-instr-control}{\mathsf{br\_if}}\)</span> and <span class="math notranslate nohighlight">\(\href{../../core/syntax/instructions.html#syntax-instr-control}{\mathsf{if}}\)</span> instructions.</p>
-<p>Its payload indicates whether the branch is likely or unlikely to be taken.</p>
+<p>Its payload indicates whether the branch’s condition is likely or unlikely to be true.</p>
 <p>All branch hints for a module are contained in a single code metadata section
 with name <em>‘metadata.code.branch_hint’</em>.</p>
 <div class="math notranslate nohighlight">
@@ -110,9 +112,9 @@ with name <em>‘metadata.code.branch_hint’</em>.</p>
 \def\mathdef1#1{{}}\mathdef1{likely} &amp; \href{binary.html#binary-branchhints}{\mathtt{likely}} &amp;::=&amp;
   \def\mathdef42#1{\mathtt{0x#1}}\mathdef42{01} \\
 \end{array}\end{split}\]</div>
-<p id="index-1">A value of <span class="math notranslate nohighlight">\(\href{binary.html#binary-branchhints}{\mathtt{likely}}\)</span> means that the branch is likely to be taken, while a
+<p id="index-1">A value of <span class="math notranslate nohighlight">\(\href{binary.html#binary-branchhints}{\mathtt{likely}}\)</span> means that the branch’s condition is likely to be true, while a
 value of <span class="math notranslate nohighlight">\(\href{binary.html#binary-branchhints}{\mathtt{unlikely}}\)</span> means the opposite. A branch with no hints is considered
-equally likely to be taken or not.</p>
+equally likely to have its condition be true or not.</p>
 </section>
 </section>
 </section>
